@@ -10,7 +10,7 @@ self.addEventListener('install', (e) => {
 self.addEventListener('activate', (e) => {
   e.waitUntil(
     caches.keys()
-      .then((keys) => Promise.all(keys.filter((k) => k !== CACHE).map((k) => caches.delete(k))))
+      .then((keys) => Promise.all(keys.filter((k) => k.startsWith('trening-') && k !== CACHE).map((k) => caches.delete(k))))
       .then(() => self.clients.claim())
   );
 });
@@ -27,6 +27,8 @@ self.addEventListener('fetch', (e) => {
   if (req.method !== 'GET') return;
   const url = new URL(req.url);
   if (url.origin !== self.location.origin) return;
+  // Dziennik zadań (podfolder /dziennik/) ma własny service worker — nie mieszamy jego plików z Treningiem.
+  if (url.pathname.startsWith(new URL('./dziennik/', self.location).pathname)) return;
 
   // Strona główna: najpierw sieć (żeby szybko łapać nowe wersje), przy słabym zasięgu kopia z telefonu.
   if (req.mode === 'navigate') {
