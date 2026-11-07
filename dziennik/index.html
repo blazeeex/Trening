@@ -166,6 +166,30 @@ summary::-webkit-details-marker{display:none}
 .welcome .steps button{display:flex;align-items:center;gap:12px;text-align:left;background:var(--panel2);border:1px solid var(--line);border-radius:14px;padding:11px 14px;font:500 15px var(--sans)}
 .welcome .steps span{font-size:20px}
 
+/* guiding thought */
+.thought{display:block;width:100%;text-align:left;position:relative;margin:2px 0 16px;padding:18px 18px 17px;border-radius:24px;background:linear-gradient(135deg,#5b4bff 0%,#9a5cf6 55%,#de5a9c 100%);color:#fff;box-shadow:0 14px 34px rgba(124,92,255,.32);overflow:hidden;cursor:pointer}
+.thought::after{content:"\201D";position:absolute;right:12px;top:-18px;font:900 120px/1 Georgia,"Times New Roman",serif;color:rgba(255,255,255,.15);pointer-events:none}
+.th-l{position:relative;display:block;font:800 11.5px var(--sans);letter-spacing:.12em;text-transform:uppercase;color:rgba(255,255,255,.85);margin:0 0 9px}
+.thought blockquote{position:relative;margin:0;padding-right:18px;font:750 24px/1.28 var(--round);letter-spacing:-.2px;overflow-wrap:anywhere;text-wrap:balance}
+.thought.long blockquote{font-size:19px}
+.th-m{position:relative;display:block;margin-top:11px;font:600 13px var(--sans);color:rgba(255,255,255,.85)}
+.th-ed{position:absolute;right:15px;bottom:12px;font-size:16px;color:rgba(255,255,255,.7)}
+.thought textarea{position:relative;display:block;width:100%;min-height:70px;resize:none;background:rgba(255,255,255,.14);border:1px solid rgba(255,255,255,.3);border-radius:14px;padding:12px 14px;color:#fff;font:700 20px/1.3 var(--round);outline:0;-webkit-appearance:none;appearance:none}
+.thought textarea:focus{border-color:rgba(255,255,255,.75);background:rgba(255,255,255,.18)}
+.thought textarea::placeholder{color:rgba(255,255,255,.72)}
+.th-b{position:relative;display:flex;flex-wrap:wrap;gap:8px;margin-top:12px}
+.th-save{background:#fff;color:#3a1d8c;font:800 15px var(--sans);border-radius:99px;padding:9px 18px}
+.th-chip{background:rgba(255,255,255,.17);color:#fff;font:600 14px var(--sans);border-radius:99px;padding:9px 14px}
+.th-save:active,.th-chip:active,.thought:active{transform:scale(.985)}
+.thought.edit{cursor:default}
+.thought.edit:active{transform:none}
+.thought.empty{background:var(--panel);border:1px dashed rgba(139,123,255,.5);box-shadow:none;color:var(--mut);font-size:14.5px}
+.thought.empty::after{display:none}
+.thought.empty .th-l{color:var(--acc2)}
+.hl .hth{margin:12px 0 0;padding:10px 12px;border-radius:12px;background:var(--acc-soft);color:#e4dfff;font:650 15px/1.35 var(--round)}
+.thw .it{display:flex;gap:10px;padding:4px 0;font-size:14.5px}
+.thw .it span:first-child{flex:none;width:24px;color:var(--mut);font:600 12px var(--sans);padding-top:2px;text-transform:uppercase}
+
 /* calendar */
 .cal{background:var(--panel);border:1px solid var(--line);border-radius:18px;padding:8px 8px 6px;margin:0 0 20px}
 .cal-h{display:flex;align-items:center;gap:6px;padding:2px 2px 6px 10px}
@@ -417,7 +441,7 @@ body.kb #toast{bottom:auto;top:calc(var(--st) + 70px)}
 <script>
 (()=>{
 'use strict';
-const VERSION='1.0';
+const VERSION='1.1';
 const LS='dziennik-zadan-v1';
 
 /* ---------- helpers ---------- */
@@ -483,7 +507,7 @@ const REC_L={d:'codziennie',wd:'w dni robocze',w:'co tydzień',m:'co miesiąc',y
 /* ---------- state ---------- */
 let S;
 function defaultState(){
- return{v:1,areas:DEFAULT_AREAS.map(a=>({id:a[0],name:a[1],color:a[2]})),items:[],habits:[],goals:[],days:{},reviews:{},
+ return{v:1,areas:DEFAULT_AREAS.map(a=>({id:a[0],name:a[1],color:a[2]})),items:[],habits:[],goals:[],days:{},reviews:{},thoughts:{},
   settings:{remind:'none',scName:'Dziennik przypomnienie',badge:false,hideInstall:false,hideWelcome:false},backupAt:null,seen:null,created:today()};
 }
 function dmap(o,valid){const r={};if(isO(o))for(const k in o)if((isD(k)||k==='*')&&valid(o[k]))r[k]=o[k];return r}
@@ -533,6 +557,8 @@ function normalize(s){
  if(isO(s.days))for(const k in s.days){const r=s.days[k];if(isD(k)&&isO(r)){const x={mood:[1,2,3,4,5].includes(r.mood)?r.mood:0,win:str(r.win,2000),grat:str(r.grat,2000),note:str(r.note,4000)};if(hasRefl(x))o.days[k]=x}}
  o.reviews={};
  if(isO(s.reviews))for(const k in s.reviews){const r=s.reviews[k];if(isD(k)&&isO(r))o.reviews[k]={rating:+r.rating>=1&&+r.rating<=10?Math.round(+r.rating):0,wins:str(r.wins,4000),lessons:str(r.lessons,4000),focus:str(r.focus,4000),at:+r.at||0,atD:isD(r.atD)?r.atD:null,made:!!r.made}}
+ o.thoughts={};
+ if(isO(s.thoughts))for(const k in s.thoughts){const r=s.thoughts[k];if(isD(k)&&isO(r)&&String(r.t||'').trim())o.thoughts[k]={t:str(r.t,300).trim(),at:+r.at||0}}
  o.settings=Object.assign({},d.settings,isO(s.settings)?s.settings:{});
  if(!['none','sc','gc','ics'].includes(o.settings.remind))o.settings.remind='none';
  o.settings.scName=str(o.settings.scName,80).trim()||d.settings.scName;
@@ -686,13 +712,14 @@ function activeDays(){
   S.items.forEach(it=>{if(it.k!=='t')return;if(it.rec)Object.keys(it.doneDays).forEach(d=>{m[d]=1});else if(it.done&&it.date)m[it.date]=1});
   S.habits.forEach(h=>Object.keys(h.log).forEach(d=>{m[d]=1}));
   Object.keys(S.days).forEach(d=>{if(hasRefl(S.days[d]))m[d]=1});
+  Object.keys(S.thoughts).forEach(d=>{m[d]=1});
   return m;
  });
 }
 function activeStreak(){const a=activeDays();let d=today(),s=0;if(!a[d])d=addD(d,-1);while(a[d]){s++;d=addD(d,-1)}return s}
 
 /* ---------- XP, levels, badges ---------- */
-const XP={task:10,prio:[0,0,2,5],habit:5,refl:10,review:30,ms:15,goal:100,perfect:20};
+const XP={task:10,prio:[0,0,2,5],habit:5,refl:10,review:30,ms:15,goal:100,perfect:20,thought:5};
 const xpFor=it=>XP.task+XP.prio[it.prio];
 function xpMap(){
  return memo('xp',()=>{
@@ -700,6 +727,7 @@ function xpMap(){
   S.items.forEach(it=>{if(it.k!=='t')return;if(it.rec)Object.keys(it.doneDays).forEach(d=>add(d,xpFor(it)));else if(it.done)add(it.date||it.done,xpFor(it))});
   S.habits.forEach(h=>Object.keys(h.log).forEach(d=>{if(h.log[d]>=h.target)add(d,XP.habit)}));
   Object.keys(S.days).forEach(d=>{if(hasRefl(S.days[d]))add(d,XP.refl)});
+  Object.keys(S.thoughts).forEach(d=>add(d,XP.thought));
   Object.keys(S.reviews).forEach(w=>{const r=S.reviews[w];if(r.at)add(r.atD||addD(w,6),XP.review)});
   S.goals.forEach(g=>{g.ms.forEach(x=>{if(x.done)add(x.done,XP.ms)});if(g.status==='d'&&g.doneAt)add(g.doneAt,XP.goal)});
   const t=today();
@@ -725,6 +753,8 @@ const BADGES=[
  {id:'a30',ic:'🚀',n:'Nie do zatrzymania',d:'Aktywność 30 dni z rzędu',k:'abest',max:30},
  {id:'r7',ic:'📝',n:'Refleksja',d:'7 wpisów refleksji dnia',k:'refl',max:7},
  {id:'r30',ic:'📖',n:'Kronika',d:'30 wpisów refleksji dnia',k:'refl',max:30},
+ {id:'m7',ic:'✨',n:'Jasny kierunek',d:'7 myśli przewodnich',k:'th',max:7},
+ {id:'m30',ic:'🌄',n:'Filozofia dnia',d:'30 myśli przewodnich',k:'th',max:30},
  {id:'w1',ic:'🧭',n:'Strateg',d:'Pierwszy przegląd tygodnia',k:'rev',max:1},
  {id:'w8',ic:'🗺️',n:'Długi dystans',d:'8 przeglądów tygodnia',k:'rev',max:8},
  {id:'g1',ic:'🎯',n:'Cel osiągnięty',d:'Osiągnij pierwszy cel',k:'goals',max:1},
@@ -743,7 +773,7 @@ function bctx(){
   Object.keys(xpMap()).forEach(d=>{if(d<=t){const s=dayStat(d);if(s.total>=3&&s.done===s.total)perfect++}});
   let abest=0,run=0,prev=null;
   Object.keys(activeDays()).sort().forEach(d=>{run=prev&&addD(prev,1)===d?run+1:1;if(run>abest)abest=run;prev=d});
-  return{tasks,early,hbest,perfect,abest,refl:Object.values(S.days).filter(hasRefl).length,rev:Object.values(S.reviews).filter(r=>r.at).length,
+  return{tasks,early,hbest,perfect,abest,refl:Object.values(S.days).filter(hasRefl).length,th:Object.keys(S.thoughts).length,rev:Object.values(S.reviews).filter(r=>r.at).length,
    goals:S.goals.filter(g=>g.status==='d').length,lvl:lvlInfo(xpTotal()).L};
  });
 }
@@ -897,11 +927,25 @@ function reflCard(d){
  h+=`<button type="button" class="btn sec" style="margin-top:12px" data-act="refl" data-d="${d}">${q.length?'Edytuj wpis':'Napisz kilka słów'}</button></div>`;
  return sec('Refleksja dnia',has?`<span class="xp small">+${XP.refl} XP</span>`:'',h);
 }
+const THOUGHT_SUGG=['Najpierw najważniejsze.','Małe kroki, każdego dnia.','Zrób dziś coś, za co jutro sobie podziękujesz.','Spokój to też siła.','Skupiam się na tym, na co mam wpływ.','Postęp, nie perfekcja.','Jedna rzecz naraz.','Robię, zamiast odkładać.','Energia idzie tam, gdzie uwaga.','Dziś słucham bardziej, niż mówię.','Każde „nie” dla rozproszeń to „tak” dla celu.','Dziś wystarczy zrobić pierwszy krok.','Zaczynam od najtrudniejszego.','Odpoczynek też jest częścią planu.','Jakość ponad ilość.','Ludzie są ważniejsi niż zadania.','Mniej ekranu, więcej życia.','Wdzięczność zmienia perspektywę.','Ciało w ruchu, głowa w spokoju.','Dotrzymuję słowa — także sobie.','Prosto, spokojnie, konsekwentnie.','Nie muszę wszystkiego. Wystarczy to, co ważne.'];
+let thEdit=null;const thDraft={};
+function thStreak(){let d=today(),s=0;if(!S.thoughts[d])d=addD(d,-1);while(S.thoughts[d]){s++;d=addD(d,-1)}return s}
+function thoughtCard(d){
+ const t=today(),th=S.thoughts[d],edit=thEdit===d||(!th&&d>=t);
+ const lab=d===t?'Myśl przewodnia dnia':'Myśl przewodnia · '+fdw(d);
+ if(edit){
+  const prev=S.thoughts[addD(d,-1)],val=thDraft[d]!=null?thDraft[d]:(th?th.t:'');
+  return `<section class="thought edit"><span class="th-l">✦ ${lab}</span><textarea id="thIn" data-d="${d}" rows="2" maxlength="300" enterkeyhint="done" autocapitalize="sentences" aria-label="${lab}" placeholder="${d===t?'Jaka myśl poprowadzi Cię dziś?':'Jaka myśl ma prowadzić ten dzień?'}">${esc(val)}</textarea><div class="th-b"><button type="button" class="th-save" data-act="thsave" data-d="${d}">Zapisz${th?'':' · +'+XP.thought+' XP'}</button><button type="button" class="th-chip" data-act="thinsp">💡 Inspiracja</button>${prev&&prev.t!==val?`<button type="button" class="th-chip" data-act="thprev" data-d="${d}">↺ Wczorajsza</button>`:''}${thEdit===d?'<button type="button" class="th-chip" data-act="thcancel">Anuluj</button>':''}</div></section>`;
+ }
+ if(!th)return `<button type="button" class="thought empty" data-act="thedit" data-d="${d}"><span class="th-l">✦ ${lab}</span>Tego dnia nie zapisano myśli · stuknij, aby dodać</button>`;
+ const st=d===t?thStreak():0;
+ return `<section class="thought${th.t.length>110?' long':''}" data-act="thedit" data-d="${d}" role="button" aria-label="${lab}: ${esc(th.t)}. Stuknij, aby edytować"><span class="th-l">✦ ${lab}</span><blockquote>${esc(th.t)}</blockquote>${st>1?`<span class="th-m">🔥 ${st} ${plural(st,'dzień','dni','dni')} z rzędu z myślą przewodnią</span>`:''}<span class="th-ed" aria-hidden="true">✎</span></section>`;
+}
 function renderToday(){
  const t=today(),d=vd(),rl=relDay(d);
  const sub=['Dziś','Jutro','Wczoraj','Pojutrze'].includes(rl)?cap(DOW_L[D(d).getDay()])+', '+fdm(d):fdm(d);
  setHeader(rl,sub,d!==t?'<button type="button" class="pill" data-act="dtoday">Dziś</button>':'');
- let h=weekStrip(d);
+ let h=thoughtCard(d)+weekStrip(d);
  if(d===t)h+=installBanner()+welcome()+reviewBanner();
  h+=summary(d);
  const its=sortItems(itemsOn(d),d),evs=its.filter(i=>i.k==='e'),tasks=its.filter(i=>i.k==='t');
@@ -1078,13 +1122,14 @@ function histFirst(){
   S.items.forEach(i=>{if(i.date&&i.date<f)f=i.date});
   S.habits.forEach(h=>Object.keys(h.log).forEach(d=>{if(d<f)f=d}));
   Object.keys(S.days).forEach(d=>{if(d<f)f=d});
+  Object.keys(S.thoughts).forEach(d=>{if(d<f)f=d});
   return f;
  });
 }
 function histDay(d){
  const s=dayStat(d),r=S.days[d],xp=xpMap()[d]||0,its=sortItems(itemsOn(d),d),tasks=its.filter(i=>i.k==='t'),evs=its.filter(i=>i.k==='e');
  const rl=relDay(d),lab=['Dziś','Wczoraj'].includes(rl)?`${rl}<small>${fdw(d)}</small>`:fdw(d);
- let b='';
+ let b=S.thoughts[d]?`<p class="hth">✦ ${esc(S.thoughts[d].t)}</p>`:'';
  if(tasks.length)b+='<h5>Zadania</h5>'+tasks.map(i=>{const ok=isDone(i,d);return `<div class="it ${ok?'ok':'no'}"><span>${ok?'✓':'○'}</span><span>${esc(i.title)}</span></div>`}).join('');
  if(evs.length)b+='<h5>Wydarzenia</h5>'+evs.map(i=>`<div class="it"><span>•</span><span>${i.time?i.time+' ':''}${esc(i.title)}</span></div>`).join('');
  const hs=S.habits.filter(h=>hDue(h,d)&&(h.freq.t!=='n'||hOk(h,d)));
@@ -1096,7 +1141,7 @@ function histDay(d){
 function histList(){
  if(histQ.trim())return histSearch(histQ);
  const first=histFirst(),out=[];let d=today(),guard=0;
- while(d>=first&&out.length<histN&&guard<2000){guard++;const s=dayStat(d);if(s.total||itemsOn(d).length||hasRefl(S.days[d]))out.push(d);d=addD(d,-1)}
+ while(d>=first&&out.length<histN&&guard<2000){guard++;const s=dayStat(d);if(s.total||itemsOn(d).length||hasRefl(S.days[d])||S.thoughts[d])out.push(d);d=addD(d,-1)}
  if(!out.length)return '<p class="empty-s" style="text-align:center;padding:30px 10px">Historia pojawi się, gdy zaczniesz dodawać i odhaczać zadania.</p>';
  return out.map(histDay).join('')+(d>=first?'<button type="button" class="btn sec" data-act="histmore">Pokaż starsze dni</button>':'');
 }
@@ -1104,6 +1149,7 @@ function histSearch(q){
  const n=norm(q.trim()),res=[];
  S.items.forEach(i=>{if(norm(i.title+' '+i.note+' '+i.place).includes(n))res.push({d:i.date||'',h:i.k==='e'?eventRow(i,i.rec?(nextOcc(i)||i.date):i.date,{date:true}):taskRow(i,i.rec?(nextOcc(i)||i.date):(i.date||''),{date:true})})});
  Object.keys(S.days).forEach(d=>{const r=S.days[d],txt=[r.win,r.grat,r.note].join(' · ');if(norm(txt).includes(n))res.push({d,h:`<div class="row" data-act="opendate" data-d="${d}"><div class="main"><div class="t">Refleksja · ${fdw(d)}</div><div class="m">${esc(txt.slice(0,140))}</div></div></div>`})});
+ Object.keys(S.thoughts).forEach(d=>{const x=S.thoughts[d].t;if(norm(x).includes(n))res.push({d,h:`<div class="row" data-act="opendate" data-d="${d}"><div class="main"><div class="t">✦ ${esc(x)}</div><div class="m">myśl przewodnia · ${fdw(d)}</div></div></div>`})});
  S.goals.forEach(g=>{if(norm(g.title+' '+g.why).includes(n))res.push({d:g.created,h:`<div class="row" data-act="goal" data-id="${g.id}"><div class="main"><div class="t">🎯 ${esc(g.title)}</div><div class="m">cel · ${Math.round(goalProg(g)*100)}%</div></div></div>`})});
  if(!res.length)return '<p class="empty-s" style="text-align:center;padding:30px 10px">Nic nie znaleziono.</p>';
  res.sort((a,b)=>a.d<b.d?1:a.d>b.d?-1:0);
@@ -1113,7 +1159,7 @@ function badgesView(){
  const c=bctx();
  const got=BADGES.filter(b=>c[b.k]>=b.max).length;
  return `<p class="hint" style="margin:0 4px 12px">Zdobyte: <b>${got} z ${BADGES.length}</b></p><div class="badges">${BADGES.map(b=>{const v=Math.min(c[b.k],b.max),ok=v>=b.max;return `<div class="bdg${ok?' got':' lock'}"><div class="ic">${b.ic}</div><b>${b.n}</b><p>${b.d}</p>${ok?'':`<div class="bar"><i style="width:${Math.round(v/b.max*100)}%"></i></div>`}</div>`}).join('')}</div>
- <div class="card" style="margin-top:16px"><p style="margin:0 0 6px"><b>Jak zdobywać XP</b></p><p class="mut small" style="margin:0;line-height:1.6">Zadanie +${XP.task} (wysoki priorytet +${XP.prio[3]}, średni +${XP.prio[2]}) · nawyk +${XP.habit} · refleksja dnia +${XP.refl} · krok milowy +${XP.ms} · przegląd tygodnia +${XP.review} · osiągnięty cel +${XP.goal} · perfekcyjny dzień (komplet, min. 3 rzeczy) +${XP.perfect}</p></div>`;
+ <div class="card" style="margin-top:16px"><p style="margin:0 0 6px"><b>Jak zdobywać XP</b></p><p class="mut small" style="margin:0;line-height:1.6">Zadanie +${XP.task} (wysoki priorytet +${XP.prio[3]}, średni +${XP.prio[2]}) · nawyk +${XP.habit} · myśl przewodnia +${XP.thought} · refleksja dnia +${XP.refl} · krok milowy +${XP.ms} · przegląd tygodnia +${XP.review} · osiągnięty cel +${XP.goal} · perfekcyjny dzień (komplet, min. 3 rzeczy) +${XP.perfect}</p></div>`;
 }
 function renderProgress(){
  const xp=xpTotal(),L=lvlInfo(xp);
@@ -1388,6 +1434,8 @@ function reviewSheet(mon){
     <div class="stat"><span>Nastrój</span><b>${mc?MOOD[Math.round(ms/mc)]+' '+fnum(ms/mc):'–'}</b></div>
     <div class="stat"><span>XP</span><b class="xp">${xp}</b></div>
     <div class="stat" style="grid-column:span 2"><span>Najlepszy dzień</span><b>${best?cap(DOW_L[D(best.d).getDay()])+' · '+Math.round(best.p*100)+'%':'–'}</b></div></div>`;
+   const ths=[];for(let i=0;i<7;i++){const d=addD(mon,i);if(S.thoughts[d])ths.push(`<div class="it"><span>${DOW_S[D(d).getDay()]}</span><span>${esc(S.thoughts[d].t)}</span></div>`)}
+   if(ths.length)h+=`<h4 class="sh4" style="margin-top:0">Myśli przewodnie tygodnia</h4><div class="card thw" style="margin-bottom:16px">${ths.join('')}</div>`;
    if(msDone.length)h+=`<p class="hint" style="margin:-8px 2px 14px">Kroki milowe: ${msDone.map(esc).join(', ')}</p>`;
    if(open.length)h+=`<h4 class="sh4">Niedokończone <small>${open.length}</small></h4><div class="list">${open.map(i=>taskRow(i,i.date,{date:true,extra:`<button type="button" class="pill" data-act="rvmove" data-id="${i.id}" data-to="${moveTo}">→ ${fds(moveTo)}</button>`})).join('')}</div>${open.length>1?`<button type="button" class="lnk" data-act="rvmoveall" data-w="${mon}" data-to="${moveTo}">Przenieś wszystkie na ${fdw(moveTo)}</button>`:''}`;
    h+=`<h4 class="sh4">Podsumowanie</h4>
@@ -1577,7 +1625,7 @@ function settingsSheet(){
   <button type="button" class="lnk" data-act="aadd">+ Dodaj obszar</button>
 
   <h4 class="sh-sec">Ikona aplikacji</h4>
-  <div class="swrow"><span>Licznik zadań na ikonie<small>Ile zadań na dziś zostało (z zaległymi)</small></span><label class="sw"><input type="checkbox" id="sBadge"${st.badge?' checked':''}><span></span></label></div>
+  <div class="swrow"><span>Licznik zadań na ikonie<small>Ile zadań na dziś zostało (z zaległymi) + 1, gdy brak myśli dnia</small></span><label class="sw"><input type="checkbox" id="sBadge"${st.badge?' checked':''}><span></span></label></div>
 
   <h4 class="sh-sec">Dane</h4>
   <p class="mut small" style="margin:-4px 0 10px">Wszystko jest zapisane tylko na tym telefonie. Ostatnia kopia: ${S.backupAt?fdw(S.backupAt):'jeszcze nie było'}.</p>
@@ -1651,7 +1699,7 @@ function checkCelebrate(){
 function updateBadge(){
  if(!('setAppBadge' in navigator))return;
  if(!S.settings.badge){return}
- const t=today(),n=itemsOn(t).filter(i=>i.k==='t'&&!isDone(i,t)).length+overdue().length;
+ const t=today(),n=itemsOn(t).filter(i=>i.k==='t'&&!isDone(i,t)).length+overdue().length+(S.thoughts[t]?0:1);
  (n?navigator.setAppBadge(n):navigator.clearAppBadge()).catch(()=>{});
 }
 
@@ -1741,6 +1789,21 @@ const A={
  hideinstall(){S.settings.hideInstall=true;save();render()},
  mood(b){const d=b.dataset.d,m=+b.dataset.m,r=S.days[d]||{mood:0,win:'',grat:'',note:''};const had=hasRefl(S.days[d]);r.mood=r.mood===m?0:m;if(hasRefl(r))S.days[d]=r;else delete S.days[d];commit();if(!had&&r.mood)toast(MOOD[m]+' Zapisano nastrój · +'+XP.refl+' XP')},
  refl(b){reflSheet(b.dataset.d)},
+ thedit(b){thEdit=b.dataset.d;render();const el=$('#thIn');if(el){el.focus();const n=el.value.length;try{el.setSelectionRange(n,n)}catch(e){}}},
+ thcancel(){if(thEdit)delete thDraft[thEdit];thEdit=null;render()},
+ thinsp(){const el=$('#thIn');if(!el)return;let x;do{x=THOUGHT_SUGG[Math.floor(Math.random()*THOUGHT_SUGG.length)]}while(x===el.value);el.value=x;thDraft[el.dataset.d]=x},
+ thprev(b){const d=b.dataset.d,p=S.thoughts[addD(d,-1)],el=$('#thIn');if(p&&el){el.value=p.t;thDraft[d]=p.t}},
+ thsave(b){
+  const d=b.dataset.d,el=$('#thIn');if(!el)return;
+  const v=el.value.replace(/\s+/g,' ').trim(),had=!!S.thoughts[d];
+  if(!v&&!had){el.focus();toast('Wpisz myśl albo stuknij „Inspiracja”');return}
+  if(!v){if(!confirm('Usunąć myśl przewodnią z tego dnia?'))return;delete S.thoughts[d]}
+  else S.thoughts[d]={t:v,at:had?S.thoughts[d].at:Date.now()};
+  delete thDraft[d];thEdit=null;el.blur();
+  if(v&&!had)floatXp(b,XP.thought);
+  commit();
+  if(v)toast(had?'Zapisano zmiany':'✦ Myśl na dziś zapisana');
+ },
  remind(b){
   const it=findItem(b.dataset.id);if(!it)return;const d=b.dataset.d;
   if(S.settings.remind==='none'){settingsSheet();toast('Wybierz, jak iPhone ma Ci przypominać');return}
@@ -1827,8 +1890,8 @@ sheet.addEventListener('change',e=>{
 });
 sheet.addEventListener('input',e=>{if(e.target.id==='sName'){const el=$('#scNameEcho');if(el)el.textContent=e.target.value||'Dziennik przypomnienie'}});
 let histT;
-view.addEventListener('input',e=>{if(e.target.id==='histQ'){histQ=e.target.value;clearTimeout(histT);histT=setTimeout(()=>{const b=$('#histBox');if(b)b.innerHTML=histList()},180)}});
-view.addEventListener('keydown',e=>{if(e.target.id==='histQ'&&e.key==='Enter'){e.preventDefault();e.target.blur()}});
+view.addEventListener('input',e=>{if(e.target.id==='thIn'){thDraft[e.target.dataset.d]=e.target.value;return}if(e.target.id==='histQ'){histQ=e.target.value;clearTimeout(histT);histT=setTimeout(()=>{const b=$('#histBox');if(b)b.innerHTML=histList()},180)}});
+view.addEventListener('keydown',e=>{if(e.key!=='Enter'||e.isComposing)return;if(e.target.id==='histQ'){e.preventDefault();e.target.blur()}else if(e.target.id==='thIn'&&!e.shiftKey){e.preventDefault();const btn=view.querySelector('[data-act=thsave]');if(btn)A.thsave(btn)}});
 document.addEventListener('focusin',e=>{if(e.target.matches('input:not([type=date]):not([type=time]):not([type=checkbox]),textarea'))document.body.classList.add('kb')});
 document.addEventListener('focusout',()=>{setTimeout(()=>{const a=document.activeElement;if(!a||!a.matches('input:not([type=date]):not([type=time]):not([type=checkbox]),textarea'))document.body.classList.remove('kb')},80)});
 addEventListener('scroll',()=>{$('header.top').classList.toggle('scrolled',scrollY>4)},{passive:true});
