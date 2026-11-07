@@ -1,6 +1,6 @@
 // Tryb offline: aplikacja działa na siłowni nawet bez zasięgu.
 // Przy każdej nowej wersji aplikacji zmień numer poniżej.
-const CACHE = 'trening-v1.0';
+const CACHE = 'trening-v1.1';
 const ASSETS = ['./', './index.html', './manifest.webmanifest', './icon-180.png', './icon-192.png', './icon-512.png'];
 
 self.addEventListener('install', (e) => {

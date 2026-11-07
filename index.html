@@ -58,6 +58,11 @@ h1{font:800 31px/1.1 var(--round);margin:0;letter-spacing:-.4px}
 .install .x{background:none;border:0;color:var(--mut);font-size:24px;line-height:1;padding:0 2px;margin-left:auto}
 .ok{background:var(--up-soft);color:var(--up);padding:11px 14px;border-radius:12px;font-weight:600;margin:6px 0 12px}
 .warn{background:var(--acc-soft);color:#ffb48a;padding:11px 14px;border-radius:12px;margin:0 0 12px;font-size:14px}
+.enote{display:flex;gap:12px;align-items:flex-start;background:var(--acc-soft);border:1px solid rgba(255,122,47,.35);border-radius:14px;padding:12px 14px;margin:0 0 14px}
+.enote p{margin:0;font-size:14px;color:#ffcfb2}
+.enote b{display:block;color:var(--ink);margin-bottom:2px}
+.enote .chip{flex:none;color:var(--acc);border-color:rgba(255,122,47,.45);white-space:nowrap}
+.saved{color:var(--up);font:600 13px var(--sans);align-self:center;margin-left:auto}
 .empty{color:var(--mut);text-align:center;padding:44px 20px}
 .lnk{background:none;border:0;padding:10px 0;color:var(--acc);font:500 15px var(--sans)}
 .lnk.danger{color:var(--danger)}
@@ -97,7 +102,7 @@ h1{font:800 31px/1.1 var(--round);margin:0;letter-spacing:-.4px}
 .mini div{display:flex;justify-content:space-between;gap:12px;padding:4px 0}
 .mini div span:first-child{color:var(--mut);white-space:nowrap}
 .mini div span:last-child{text-align:right}
-.tail{display:flex;justify-content:center;padding:4px 16px 8px}
+.tail{display:flex;justify-content:center;gap:22px;flex-wrap:wrap;padding:4px 16px 8px}
 .grp .tail{border-top:1px solid var(--line)}
 
 /* history */
@@ -207,7 +212,7 @@ body.kb{padding-bottom:40vh}
 <script>
 (function(){
 'use strict';
-var VERSION='1.0';
+var VERSION='1.1';
 var LS='dziennik-treningowy-v1';
 
 /* Twój plan (z dotychczasowego dziennika). Można go zmieniać w zakładce Plan. */
@@ -288,6 +293,13 @@ function findEx(id){for(var i=0;i<S.plan.length;i++){var g=S.plan[i];for(var j=0
 function exName(id){var f=findEx(id);if(f)return f.e.name;for(var i=0;i<S.archive.length;i++)if(S.archive[i].id===id)return S.archive[i].name;return 'Ćwiczenie'}
 function orderMap(){var m={},i=0;S.plan.forEach(function(g){g.ex.forEach(function(e){m[e.id]=i++})});S.archive.forEach(function(a){if(!(a.id in m))m[a.id]=i++});return m}
 function lastOf(id){var a=S.log[id];return a&&a.length?a[a.length-1]:null}
+/* wpis z danego dnia oraz ostatni wpis sprzed tego dnia (do porównań przy edycji) */
+function entryIdx(id,d){var a=S.log[id];if(!a)return -1;for(var i=0;i<a.length;i++)if(a[i].d===d)return i;return -1}
+function refIdx(id,d){var a=S.log[id],r=-1;if(!a)return -1;for(var i=0;i<a.length;i++)if(a[i].d<d)r=i;return r}
+function removeEntry(id,d){var a=S.log[id];if(!a)return;S.log[id]=a.filter(function(x){return x.d!==d});if(!S.log[id].length)delete S.log[id]}
+function savedCount(d){var n=0;S.plan.forEach(function(g){g.ex.forEach(function(e){if(entryIdx(e.id,d)>=0)n++})});return n}
+function doneEx(id){return filled(id)||(!S.draft.ex[id]&&entryIdx(id,S.draft.d)>=0)}
+function pendingDel(){return Object.keys(S.draft.ex).filter(function(id){return findEx(id)&&!filled(id)&&entryIdx(id,S.draft.d)>=0}).length}
 function fmtSet(p){return p[0]?fkg(p[0])+' kg × '+p[1]:p[1]+' powt.'}
 function fmtSets(s){return s.map(fmtSet).join(', ')}
 function topKg(x){return Math.max.apply(null,[0].concat(x.s.map(function(p){return p[0]})))}
@@ -322,7 +334,9 @@ function installBanner(){
 /* ---------- TRENING ---------- */
 function rowsFor(e){
  var dr=S.draft.ex[e.id];if(dr&&dr.length)return dr;
- var l=lastOf(e.id),rows=[];
+ var a=S.log[e.id],ei=entryIdx(e.id,S.draft.d);
+ if(ei>=0)return a[ei].s.map(function(p){return[p[0]?fkg(p[0]):'',String(p[1])]});
+ var ri=refIdx(e.id,S.draft.d),l=ri>=0?a[ri]:null,rows=[];
  for(var i=0;i<e.sets;i++){
   var kg=0;
   if(l){var p=l.s[Math.min(i,l.s.length-1)];kg=p?p[0]:0}else kg=e.kg||0;
@@ -330,25 +344,27 @@ function rowsFor(e){
  }
  return rows;
 }
-function groupCount(g){var n=g.ex.filter(function(e){return filled(e.id)}).length;return n?'<span class="cnt-on">'+n+' / '+g.ex.length+'</span>':g.ex.length+' ćw.'}
+function groupCount(g){var n=g.ex.filter(function(e){return doneEx(e.id)}).length;return n?'<span class="cnt-on">'+n+' / '+g.ex.length+'</span>':g.ex.length+' ćw.'}
 function exCard(e){
- var id=e.id,l=lastOf(id),a=S.log[id],rows=rowsFor(e),nm=esc(e.name);
- var h='<article class="ex'+(filled(id)?' done':'')+'" data-id="'+esc(id)+'">';
- h+='<div class="ex-h"><h3>'+nm+'</h3>'+(a?badge(id,a.length-1,false):'')+'</div>';
- h+='<p class="last">'+(l?'Ostatnio '+fd(l.d)+': '+fmtSets(l.s):'Pierwszy raz — brak zapisów')+'</p>';
+ var id=e.id,a=S.log[id],rows=rowsFor(e),nm=esc(e.name),ei=entryIdx(id,S.draft.d),ri=refIdx(id,S.draft.d),l=ri>=0?a[ri]:null;
+ var h='<article class="ex'+(doneEx(id)?' done':'')+'" data-id="'+esc(id)+'">';
+ h+='<div class="ex-h"><h3>'+nm+'</h3>'+(ei>=0?badge(id,ei,false):ri>=0?badge(id,ri,false):'')+'</div>';
+ h+='<p class="last">'+(l?(ei>=0?'Poprzednio ':'Ostatnio ')+fd(l.d)+': '+fmtSets(l.s):'Pierwszy raz — brak wcześniejszych zapisów')+'</p>';
  rows.forEach(function(r,i){
   h+='<div class="set"><span class="sn">'+(i+1)+'</span>'+
    '<label class="fld"><input class="kg" inputmode="decimal" autocomplete="off" placeholder="—" value="'+esc(r[0])+'" aria-label="'+nm+', seria '+(i+1)+', ciężar w kg"><span>kg</span></label>'+
    '<span class="x">×</span>'+
    '<label class="fld"><input class="rp" inputmode="numeric" pattern="[0-9]*" autocomplete="off" placeholder="0" value="'+esc(r[1])+'" aria-label="'+nm+', seria '+(i+1)+', powtórzenia"><span>powt.</span></label></div>';
  });
- h+='<div class="ex-f"><button type="button" class="chip" data-act="addset">+ seria</button>'+(rows.length>1?'<button type="button" class="chip" data-act="delset">− seria</button>':'')+(a?'<button type="button" class="chip ghost" data-act="minihist">Historia</button>':'')+'</div><div class="mini" hidden></div></article>';
+ h+='<div class="ex-f"><button type="button" class="chip" data-act="addset">+ seria</button>'+(rows.length>1?'<button type="button" class="chip" data-act="delset">− seria</button>':'')+(a?'<button type="button" class="chip ghost" data-act="minihist">Historia</button>':'')+(ei>=0&&!S.draft.ex[id]?'<span class="saved">✓ zapisane</span>':'')+'</div><div class="mini" hidden></div></article>';
  return h;
 }
 function renderTrening(){
  var h=installBanner(),ld=lastSession();
  h+='<div class="meta"><label class="date"><span>Data</span><input type="date" id="wdate" value="'+S.draft.d+'" max="'+today()+'"></label>'+(ld?'<span class="mut small">Ostatni trening: '+fdl(ld)+'</span>':'')+'</div>';
- if(S.draft.d!==today()&&draftHasData())h+='<p class="warn">Masz niezapisany trening z '+fdl(S.draft.d)+'. Zapisz go albo wyczyść formularz.</p>';
+ var sv=savedCount(S.draft.d);
+ if(S.draft.d!==today())h+='<div class="enote"><p><b>✏️ Edycja treningu z '+fdl(S.draft.d)+'</b>'+(sv?'Zapisane serie są wpisane poniżej. Popraw je, dopisz brakujące ćwiczenia i stuknij „Zapisz zmiany”.':'Wpisz ćwiczenia z tego dnia i zapisz.')+(draftHasData()?' Masz niezapisane zmiany.':'')+'</p><button type="button" class="chip" data-act="backtoday">Wróć do dziś</button></div>';
+ else if(sv)h+='<div class="enote"><p><b>Dzisiejszy trening jest zapisany ('+sv+' '+plural(sv,'ćwiczenie','ćwiczenia','ćwiczeń')+')</b>Możesz go dokończyć: dopisz kolejne serie lub ćwiczenia i stuknij „Zapisz zmiany”. Żeby usunąć ćwiczenie z treningu, wyczyść jego powtórzenia.</p></div>';
  if(!S.plan.length)h+='<p class="empty">Plan jest pusty. Dodaj ćwiczenia w zakładce Plan.</p>';
  S.plan.forEach(function(g){
   h+='<details class="grp" data-g="'+esc(g.id)+'"'+(S.open[g.id]?' open':'')+'><summary><span>'+esc(g.name)+'</span><small data-cnt="'+esc(g.id)+'">'+groupCount(g)+'</small></summary>';
@@ -356,7 +372,7 @@ function renderTrening(){
   g.ex.forEach(function(e){h+=exCard(e)});
   h+='</details>';
  });
- if(draftHasData())h+='<div class="tail"><button type="button" class="lnk danger" data-act="clear">Wyczyść formularz</button></div>';
+ if(draftHasData())h+='<div class="tail"><button type="button" class="lnk danger" data-act="clear">'+(sv?'Odrzuć niezapisane zmiany':'Wyczyść formularz')+'</button></div>';
  view.innerHTML=h;
  updateSaveBar();
 }
@@ -377,9 +393,11 @@ function afterDraftChange(id){
 }
 function filledCount(){return Object.keys(S.draft.ex).filter(function(id){return filled(id)&&findEx(id)}).length}
 function updateSaveBar(){
- var n=filledCount(),b=$('#saveBtn');
- b.textContent=n?'Zapisz trening · '+n+' '+plural(n,'ćwiczenie','ćwiczenia','ćwiczeń'):'Zapisz trening';
- b.classList.toggle('dim',!n);
+ var n=filledCount(),del=pendingDel(),sv=savedCount(S.draft.d),b=$('#saveBtn');
+ if(sv&&!n&&!del)b.textContent=S.draft.d===today()?'Trening zapisany ✓':'Trening z '+fdl(S.draft.d)+' zapisany ✓';
+ else if(sv)b.textContent='Zapisz zmiany'+(n?' · '+n+' '+plural(n,'ćwiczenie','ćwiczenia','ćwiczeń'):'');
+ else b.textContent=n?'Zapisz trening · '+n+' '+plural(n,'ćwiczenie','ćwiczenia','ćwiczeń'):'Zapisz trening';
+ b.classList.toggle('dim',!n&&!del);
 }
 function toggleMini(card){
  var box=card.querySelector('.mini');
@@ -390,19 +408,20 @@ function toggleMini(card){
 }
 var justSaved=false,openDay=null;
 function saveWorkout(){
- var d=S.draft.d,n=0;
+ var d=S.draft.d,n=0,r=0;
  if(d>today())d=today();
+ var had=savedCount(d);
  Object.keys(S.draft.ex).forEach(function(id){
   if(!findEx(id))return;
   var s=S.draft.ex[id].map(function(r){return[num(r[0]),Math.round(num(r[1]))]}).filter(function(p){return p[1]>0});
-  if(!s.length)return;
-  putEntry(id,{d:d,s:s});n++;
+  if(s.length){putEntry(id,{d:d,s:s});n++}
+  else if(entryIdx(id,d)>=0){removeEntry(id,d);r++}
  });
- if(!n){toast('Wpisz powtórzenia w co najmniej jednym ćwiczeniu');return}
+ if(!n&&!r){toast(had?'Brak zmian — ten trening jest już zapisany':'Wpisz powtórzenia w co najmniej jednym ćwiczeniu');return}
  S.draft=freshDraft();persist();
  justSaved=true;openDay=d;histMode='d';
  go('historia');
- toast('Zapisano '+n+' '+plural(n,'ćwiczenie','ćwiczenia','ćwiczeń'));
+ toast(had?'Zaktualizowano trening z '+fdl(d):'Zapisano '+n+' '+plural(n,'ćwiczenie','ćwiczenia','ćwiczeń'));
 }
 
 /* ---------- HISTORIA ---------- */
@@ -424,7 +443,7 @@ function histDays(){
    var id=r[0],i=r[1],x=S.log[id][i],pv=i?S.log[id][i-1]:null;
    return '<div class="hrow"><div class="ex-h"><h3>'+esc(exName(id))+'</h3>'+(pv?badge(id,i,true):'<span class="bdg">pierwszy raz</span>')+'</div><p class="val">'+fmtSets(x.s)+'</p>'+(pv?'<p class="last">Poprzednio '+fd(pv.d)+': '+fmtSets(pv.s)+'</p>':'')+'</div>';
   }).join('');
-  return '<details class="grp"'+(d===target?' open':'')+'><summary><span>'+fdl(d)+'</span><small>'+days[d].length+' ćw.</small></summary>'+rows+'<div class="tail"><button type="button" class="lnk danger" data-act="delday" data-d="'+d+'">Usuń ten trening</button></div></details>';
+  return '<details class="grp"'+(d===target?' open':'')+'><summary><span>'+fdl(d)+'</span><small>'+days[d].length+' ćw.</small></summary>'+rows+'<div class="tail"><button type="button" class="lnk" data-act="editday" data-d="'+d+'">✏️ Edytuj / dokończ</button><button type="button" class="lnk danger" data-act="delday" data-d="'+d+'">Usuń ten trening</button></div></details>';
  }).join('');
 }
 function histByEx(){
@@ -639,7 +658,14 @@ view.addEventListener('click',function(ev){
   case 'addset':rows=readRows(card);rows.push([rows.length?rows[rows.length-1][0]:'','']);S.draft.ex[id]=rows;persist();refreshCard(card,id,true);break;
   case 'delset':rows=readRows(card);if(rows.length>1){rows.pop();S.draft.ex[id]=rows;persist();refreshCard(card,id,false)}break;
   case 'minihist':toggleMini(card);break;
-  case 'clear':if(confirm('Wyczyścić wszystkie wpisane serie?')){S.draft=freshDraft();persist();renderTrening()}break;
+  case 'clear':if(confirm(savedCount(S.draft.d)?'Odrzucić niezapisane zmiany? Zapisany trening zostanie bez zmian.':'Wyczyścić wszystkie wpisane serie?')){S.draft={d:S.draft.d,ex:{}};persist();renderTrening()}break;
+  case 'backtoday':if(draftHasData()&&!confirm('Odrzucić niezapisane zmiany z '+fdl(S.draft.d)+'?'))return;S.draft=freshDraft();persist();renderTrening();window.scrollTo(0,0);break;
+  case 'editday':
+   var ed=b.dataset.d;
+   if(draftHasData()&&S.draft.d!==ed&&!confirm('W formularzu są niezapisane serie z '+fdl(S.draft.d)+'. Odrzucić je i edytować trening z '+fdl(ed)+'?'))return;
+   if(S.draft.d!==ed)S.draft={d:ed,ex:{}};
+   S.plan.forEach(function(g){if(g.ex.some(function(e){return entryIdx(e.id,ed)>=0}))S.open[g.id]=1});
+   persist();go('trening');toast('Edycja treningu z '+fdl(ed));break;
   case 'hideinstall':S.hideInstall=true;persist();var ib=b.closest('.install');if(ib)ib.remove();break;
   case 'seg':histMode=b.dataset.m;renderHist();break;
   case 'delday':
@@ -658,7 +684,7 @@ view.addEventListener('click',function(ev){
 view.addEventListener('input',function(ev){
  var t=ev.target;if(!t.matches('.kg,.rp'))return;
  var card=t.closest('.ex'),id=card.dataset.id;
- S.draft.ex[id]=readRows(card);persist();card.classList.toggle('done',filled(id));afterDraftChange(id);
+ S.draft.ex[id]=readRows(card);persist();card.classList.toggle('done',doneEx(id));var sv2=card.querySelector('.saved');if(sv2)sv2.remove();afterDraftChange(id);
 });
 view.addEventListener('change',function(ev){
  var t=ev.target;
