@@ -43,6 +43,24 @@ h1{font:800 31px/1.1 var(--round);margin:0;letter-spacing:-.4px}
 .tbar{position:absolute;left:0;right:0;bottom:-1px;height:3px;background:var(--acc);transform-origin:left center;transition:transform .25s linear}
 .pop{position:fixed;right:12px;top:calc(var(--st) + 62px);z-index:25;background:var(--panel);border:1px solid var(--line);border-radius:18px;padding:14px;box-shadow:0 16px 48px rgba(0,0,0,.55);width:min(320px,calc(100% - 24px))}
 .pop p{margin:0 0 10px;color:var(--mut);font-size:13px}
+.pop .pop-f{margin:12px 0 0;padding-top:10px;border-top:1px solid var(--line);font-size:13px;color:var(--mut)}
+.pop .pop-f.on{color:var(--up)}
+.pop .pop-f button{background:none;border:0;padding:0;color:var(--acc);font:600 13px var(--sans)}
+.swrow{display:flex;align-items:center;justify-content:space-between;gap:12px;margin:4px 0 12px}
+.swrow>span{font:600 15px var(--sans)}
+.swrow>span small{display:block;font:400 12.5px var(--sans);color:var(--mut);margin-top:2px}
+.sw{position:relative;display:inline-block;width:51px;height:31px;flex:none}
+.sw input{position:absolute;opacity:0;inset:0;margin:0;width:100%;height:100%;cursor:pointer}
+.sw span{position:absolute;inset:0;border-radius:99px;background:var(--panel2);border:1px solid var(--line);transition:background .2s;pointer-events:none}
+.sw span::after{content:"";position:absolute;left:2px;top:2px;width:25px;height:25px;border-radius:50%;background:#fff;transition:transform .2s;box-shadow:0 2px 4px rgba(0,0,0,.3)}
+.sw input:checked+span{background:var(--up);border-color:var(--up)}
+.sw input:checked+span::after{transform:translateX(20px)}
+details.steps{background:var(--panel2);border:1px solid var(--line);border-radius:14px;margin:0 0 12px}
+details.steps>summary{list-style:none;padding:12px 14px;font:600 15px var(--sans);color:var(--acc);cursor:pointer}
+details.steps>summary::-webkit-details-marker{display:none}
+details.steps ol{margin:0;padding:0 16px 10px 34px;font-size:14px;line-height:1.5}
+details.steps li{margin:0 0 7px}
+details.steps p{margin:0;padding:0 14px 12px;font-size:13px;color:var(--mut)}
 .pop-g{display:grid;grid-template-columns:repeat(4,1fr);gap:8px}
 .pop-g button{border:1px solid var(--line);background:var(--panel2);border-radius:12px;padding:13px 0;font:700 16px var(--sans);font-variant-numeric:tabular-nums}
 .pop-g button.cur{border-color:var(--acc);color:var(--acc)}
@@ -212,7 +230,7 @@ body.kb{padding-bottom:40vh}
 <script>
 (function(){
 'use strict';
-var VERSION='1.1';
+var VERSION='1.2';
 var LS='dziennik-treningowy-v1';
 
 /* Twój plan (z dotychczasowego dziennika). Można go zmieniać w zakładce Plan. */
@@ -250,7 +268,7 @@ function freshDraft(){return{d:today(),ex:{}}}
 function defaultState(){
  return{v:1,
   plan:DEFAULT_PLAN.map(function(g,gi){return{id:'g'+gi,name:g[0],ex:g[1].map(function(e,ei){return{id:gi+'-'+ei,name:e[0],kg:e[1]||0,sets:2}})}}),
-  log:JSON.parse(JSON.stringify(SEED_LOG)),archive:[],draft:freshDraft(),open:{g0:1},backupAt:null,rest:90,hideInstall:false};
+  log:JSON.parse(JSON.stringify(SEED_LOG)),archive:[],draft:freshDraft(),open:{g0:1},backupAt:null,rest:90,hideInstall:false,scTimer:{on:false,name:'Przerwa'}};
 }
 function normalize(s){
  var d=defaultState();
@@ -278,6 +296,7 @@ function normalize(s){
  Object.keys(o.draft.ex).forEach(function(k){var r=o.draft.ex[k];if(!Array.isArray(r))delete o.draft.ex[k];else o.draft.ex[k]=r.filter(Array.isArray).map(function(p){return[String(p[0]==null?'':p[0]),String(p[1]==null?'':p[1])]})});
  if(!o.open||typeof o.open!=='object')o.open={};
  o.rest=[60,90,120,180].indexOf(o.rest)>=0?o.rest:90;
+ var sc=o.scTimer&&typeof o.scTimer==='object'?o.scTimer:{};o.scTimer={on:!!sc.on,name:String(sc.name||'').trim().slice(0,60)||'Przerwa'};
  return o;
 }
 var saveWarned=false;
@@ -496,6 +515,16 @@ function renderPlan(){
   h+='<button type="button" class="prow add" data-act="addex" data-g="'+esc(g.id)+'">+ Dodaj ćwiczenie</button></div></section>';
  });
  h+='<button type="button" class="btn sec wide" data-act="addgroup">+ Dodaj grupę mięśniową</button>';
+ h+='<section class="pg" id="scSec"><div class="pg-h"><h2>Minutnik przerwy</h2></div><div class="card">'+
+  '<p>Żeby iPhone zadzwonił na koniec przerwy także przy zablokowanym ekranie, Trening może przy każdej przerwie uruchamiać minutnik z aplikacji Zegar (przez Skróty).</p>'+
+  '<div class="swrow"><span>Alarm na zablokowanym ekranie<small>'+(S.scTimer.on?'Włączony — po wyborze przerwy otworzą się na chwilę Skróty; wróć stuknięciem „◀ Trening” w lewym górnym rogu.':'Wyłączony — sygnał tylko przy otwartej aplikacji.')+'</small></span><label class="sw"><input type="checkbox" id="scOn"'+(S.scTimer.on?' checked':'')+' aria-label="Alarm na zablokowanym ekranie"><span></span></label></div>'+
+  '<details class="steps"'+(S.scTimer.on?'':' open')+'><summary>Jak utworzyć skrót (raz, ok. 1 minuty)</summary><ol>'+
+   '<li>Otwórz aplikację <b>Skróty</b> i stuknij <b>+</b>. Stuknij nazwę u góry i wpisz dokładnie: <b>'+esc(S.scTimer.name)+'</b></li>'+
+   '<li>Stuknij <b>Dodaj czynność</b>, wyszukaj <b>„minutnik”</b> i wybierz <b>Uruchom minutnik</b> (ang. <i>Start Timer</i>).</li>'+
+   '<li>W czynności stuknij liczbę → <b>Wybierz zmienną</b> → <b>Dane wejściowe skrótu</b>. Potem stuknij <b>minut</b> i zmień na <b>sekund</b>. Gotowe.</li>'+
+  '</ol><p>Włącz przełącznik powyżej i stuknij „Test”. Przy pierwszym razie iPhone zapyta o otwarcie Skrótów — zezwól. Po 10 sekundach powinien zadzwonić minutnik.</p></details>'+
+  '<label class="f"><span>Nazwa skrótu</span><input id="scName" type="text" maxlength="60" autocomplete="off" value="'+esc(S.scTimer.name)+'"></label>'+
+  '<button type="button" class="btn sec" style="width:100%" data-act="sctest">Test — minutnik 10 sekund</button></div></section>';
  h+='<section class="pg"><div class="pg-h"><h2>Kopia zapasowa</h2></div><div class="card"><p>Dane są zapisane tylko na tym telefonie. Co jakiś czas zapisz kopię w Plikach lub iCloud — po zmianie telefonu wczytasz ją tutaj.</p><p class="mut small">Ostatnia kopia: '+(S.backupAt?fdl(S.backupAt):'jeszcze nie było')+'</p><div class="row2"><button type="button" class="btn" data-act="export">Zapisz kopię</button><button type="button" class="btn sec" data-act="import">Wczytaj kopię</button></div></div></section>';
  h+='<p class="foot">Dziennik treningowy · wersja '+VERSION+'</p>';
  view.innerHTML=h;
@@ -616,10 +645,11 @@ var restEnd=0,restDur=0,restInt=null,actx=null;
 function unlockAudio(){try{var C=window.AudioContext||window.webkitAudioContext;if(!C)return;if(!actx)actx=new C();if(actx.state==='suspended')actx.resume();var b=actx.createBuffer(1,1,22050),s=actx.createBufferSource();s.buffer=b;s.connect(actx.destination);s.start(0)}catch(e){}}
 function beep(){try{if(!actx)return;if(actx.state==='suspended')actx.resume();var t=actx.currentTime+.05;[0,.3,.6].forEach(function(o,i){var osc=actx.createOscillator(),g=actx.createGain();osc.type='sine';osc.frequency.value=i===2?1320:880;g.gain.setValueAtTime(.0001,t+o);g.gain.exponentialRampToValueAtTime(.4,t+o+.02);g.gain.exponentialRampToValueAtTime(.0001,t+o+.24);osc.connect(g);g.connect(actx.destination);osc.start(t+o);osc.stop(t+o+.26)})}catch(e){}}
 function mmss(s){return Math.floor(s/60)+':'+String(s%60).padStart(2,'0')}
-function startRest(sec){unlockAudio();restDur=sec;restEnd=Date.now()+sec*1000;S.rest=sec;persist();closePop();clearInterval(restInt);restInt=setInterval(tickRest,250);tickRest()}
+function scUrl(sec){return 'shortcuts://run-shortcut?name='+encodeURIComponent(S.scTimer.name)+'&input=text&text='+sec}
+function startRest(sec){unlockAudio();restDur=sec;restEnd=Date.now()+sec*1000;S.rest=sec;persist();closePop();clearInterval(restInt);restInt=setInterval(tickRest,250);tickRest();if(S.scTimer.on){try{location.href=scUrl(sec)}catch(e){}}}
 function tickRest(){
  if(!restEnd)return;var ms=restEnd-Date.now();
- if(ms<=0){stopRest(true);return}
+ if(ms<=0){var late=ms<-3000;stopRest(!late);if(late)toast('Przerwa minęła — następna seria');return}
  timerBtn.classList.add('run');timerBtn.querySelector('b').textContent=mmss(Math.ceil(ms/1000));
  timerBar.hidden=false;timerBar.style.transform='scaleX('+(ms/(restDur*1000)).toFixed(4)+')';
 }
@@ -627,16 +657,22 @@ function stopRest(done){
  clearInterval(restInt);restInt=null;restEnd=0;timerBtn.classList.remove('run');timerBtn.querySelector('b').textContent='Przerwa';timerBar.hidden=true;
  if(done){beep();toast('Koniec przerwy — następna seria')}
 }
-function openPop(){Array.prototype.forEach.call(timerPop.querySelectorAll('[data-rest]'),function(b){b.classList.toggle('cur',+b.dataset.rest===S.rest)});timerPop.hidden=false}
+function openPop(){
+ Array.prototype.forEach.call(timerPop.querySelectorAll('[data-rest]'),function(b){b.classList.toggle('cur',+b.dataset.rest===S.rest)});
+ var f=timerPop.querySelector('.pop-f');if(!f){f=document.createElement('div');f.className='pop-f';timerPop.appendChild(f)}
+ f.classList.toggle('on',S.scTimer.on);
+ f.innerHTML=S.scTimer.on?'🔔 Zadzwoni też minutnik iPhone\'a (Skróty)':'Alarm przy zablokowanym ekranie: <button type="button" data-scsetup>włącz →</button>';
+ timerPop.hidden=false;
+}
 function closePop(){timerPop.hidden=true}
-timerBtn.addEventListener('click',function(){if(restEnd){stopRest(false);toast('Przerwa zatrzymana');return}if(timerPop.hidden)openPop();else closePop()});
-timerPop.addEventListener('click',function(e){var b=e.target.closest('[data-rest]');if(b)startRest(+b.dataset.rest)});
+timerBtn.addEventListener('click',function(){if(restEnd){stopRest(false);toast(S.scTimer.on?'Przerwa zatrzymana — minutnik w Zegarze zatrzymaj na ekranie blokady':'Przerwa zatrzymana',S.scTimer.on?4000:0);return}if(timerPop.hidden)openPop();else closePop()});
+timerPop.addEventListener('click',function(e){if(e.target.closest('[data-scsetup]')){closePop();go('plan');var sc=document.getElementById('scSec');if(sc)sc.scrollIntoView({block:'start'});return}var b=e.target.closest('[data-rest]');if(b)startRest(+b.dataset.rest)});
 document.addEventListener('click',function(e){if(!timerPop.hidden&&!e.target.closest('#timerPop')&&!e.target.closest('#timerBtn'))closePop()});
 document.addEventListener('visibilitychange',function(){if(!document.hidden)tickRest()});
 
 /* ---------- toast ---------- */
 var toastT;
-function toast(t){var el=$('#toast');el.textContent=t;el.classList.add('on');clearTimeout(toastT);toastT=setTimeout(function(){el.classList.remove('on')},2400)}
+function toast(t,ms){var el=$('#toast');el.textContent=t;el.classList.add('on');clearTimeout(toastT);toastT=setTimeout(function(){el.classList.remove('on')},ms||2400)}
 
 /* ---------- navigation ---------- */
 var tab='trening',TITLES={trening:'Trening',historia:'Historia',plan:'Plan'};
@@ -679,6 +715,7 @@ view.addEventListener('click',function(ev){
   case 'addgroup':openGroupSheet(null);break;
   case 'export':exportData();break;
   case 'import':$('#impfile').click();break;
+  case 'sctest':var ni=$('#scName');if(ni){S.scTimer.name=ni.value.trim().slice(0,60)||'Przerwa';persist()}location.href=scUrl(10);break;
  }
 });
 view.addEventListener('input',function(ev){
@@ -688,12 +725,14 @@ view.addEventListener('input',function(ev){
 });
 view.addEventListener('change',function(ev){
  var t=ev.target;
+ if(t.id==='scOn'){S.scTimer.on=t.checked;persist();renderPlan();toast(t.checked?'Alarm iPhone\'a włączony — zrób test':'Alarm iPhone\'a wyłączony');return}
+ if(t.id==='scName'){S.scTimer.name=t.value.trim().slice(0,60)||'Przerwa';persist();renderPlan();return}
  if(t.id==='wdate'){var v=t.value;if(/^\d{4}-\d{2}-\d{2}$/.test(v)&&v<=today()){S.draft.d=v;persist();renderTrening()}else t.value=S.draft.d}
  else if(t.id==='exsel'){histEx=t.value;renderHist()}
 });
 view.addEventListener('toggle',function(ev){var d=ev.target;if(d.matches&&d.matches('details[data-g]')){S.open[d.dataset.g]=d.open?1:0;persist()}},true);
-document.addEventListener('focusin',function(e){if(e.target.matches('#view input:not([type=date])'))document.body.classList.add('kb')});
-document.addEventListener('focusout',function(){setTimeout(function(){var a=document.activeElement;if(!a||!a.matches('#view input:not([type=date])'))document.body.classList.remove('kb')},80)});
+document.addEventListener('focusin',function(e){if(e.target.matches('#view input:not([type=date]):not([type=checkbox])'))document.body.classList.add('kb')});
+document.addEventListener('focusout',function(){setTimeout(function(){var a=document.activeElement;if(!a||!a.matches('#view input:not([type=date]):not([type=checkbox])'))document.body.classList.remove('kb')},80)});
 addEventListener('scroll',function(){$('header.top').classList.toggle('scrolled',scrollY>4)},{passive:true});
 
 /* ---------- start ---------- */
