@@ -1,6 +1,6 @@
 // Tryb offline: dziennik działa także bez zasięgu.
 // Przy każdej nowej wersji aplikacji zmień numer poniżej.
-const CACHE = 'dziennik-v1.1';
+const CACHE = 'dziennik-v1.2';
 const ASSETS = ['./', './index.html', './manifest.webmanifest', './icon-180.png', './icon-192.png', './icon-512.png'];
 
 self.addEventListener('install', (e) => {

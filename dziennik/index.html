@@ -188,6 +188,9 @@ summary::-webkit-details-marker{display:none}
 .thought.empty .th-l{color:var(--acc2)}
 .hl .hth{margin:12px 0 0;padding:10px 12px;border-radius:12px;background:var(--acc-soft);color:#e4dfff;font:650 15px/1.35 var(--round)}
 .thw .it{display:flex;gap:10px;padding:4px 0;font-size:14.5px}
+.th-rem{position:relative;display:inline-flex;margin-top:12px;background:rgba(255,255,255,.17);color:#fff;font:600 13.5px var(--sans);border-radius:99px;padding:7px 12px}
+a.btn{text-decoration:none}
+.trtimes button{min-width:62px;justify-content:center}
 .thw .it span:first-child{flex:none;width:24px;color:var(--mut);font:600 12px var(--sans);padding-top:2px;text-transform:uppercase}
 
 /* calendar */
@@ -441,7 +444,7 @@ body.kb #toast{bottom:auto;top:calc(var(--st) + 70px)}
 <script>
 (()=>{
 'use strict';
-const VERSION='1.1';
+const VERSION='1.2';
 const LS='dziennik-zadan-v1';
 
 /* ---------- helpers ---------- */
@@ -562,6 +565,7 @@ function normalize(s){
  o.settings=Object.assign({},d.settings,isO(s.settings)?s.settings:{});
  if(!['none','sc','gc','ics'].includes(o.settings.remind))o.settings.remind='none';
  o.settings.scName=str(o.settings.scName,80).trim()||d.settings.scName;
+ {const tr=o.settings.thoughtRem;o.settings.thoughtRem=isO(tr)&&isT(tr.time)?{time:tr.time,via:tr.via==='gc'?'gc':'cal',at:isD(tr.at)?tr.at:today()}:null}
  o.settings.badge=!!o.settings.badge;o.settings.hideInstall=!!o.settings.hideInstall;o.settings.hideWelcome=!!o.settings.hideWelcome;
  o.backupAt=isD(s.backupAt)?s.backupAt:null;
  o.seen=isO(s.seen)&&Array.isArray(s.seen.b)?{lvl:+s.seen.lvl||1,b:s.seen.b.map(String)}:null;
@@ -935,11 +939,11 @@ function thoughtCard(d){
  const lab=d===t?'Myśl przewodnia dnia':'Myśl przewodnia · '+fdw(d);
  if(edit){
   const prev=S.thoughts[addD(d,-1)],val=thDraft[d]!=null?thDraft[d]:(th?th.t:'');
-  return `<section class="thought edit"><span class="th-l">✦ ${lab}</span><textarea id="thIn" data-d="${d}" rows="2" maxlength="300" enterkeyhint="done" autocapitalize="sentences" aria-label="${lab}" placeholder="${d===t?'Jaka myśl poprowadzi Cię dziś?':'Jaka myśl ma prowadzić ten dzień?'}">${esc(val)}</textarea><div class="th-b"><button type="button" class="th-save" data-act="thsave" data-d="${d}">Zapisz${th?'':' · +'+XP.thought+' XP'}</button><button type="button" class="th-chip" data-act="thinsp">💡 Inspiracja</button>${prev&&prev.t!==val?`<button type="button" class="th-chip" data-act="thprev" data-d="${d}">↺ Wczorajsza</button>`:''}${thEdit===d?'<button type="button" class="th-chip" data-act="thcancel">Anuluj</button>':''}</div></section>`;
+  return `<section class="thought edit"><span class="th-l">✦ ${lab}</span><textarea id="thIn" data-d="${d}" rows="2" maxlength="300" enterkeyhint="done" autocapitalize="sentences" aria-label="${lab}" placeholder="${d===t?'Jaka myśl poprowadzi Cię dziś?':'Jaka myśl ma prowadzić ten dzień?'}">${esc(val)}</textarea><div class="th-b"><button type="button" class="th-save" data-act="thsave" data-d="${d}">Zapisz${th?'':' · +'+XP.thought+' XP'}</button><button type="button" class="th-chip" data-act="thinsp">💡 Inspiracja</button>${prev&&prev.t!==val?`<button type="button" class="th-chip" data-act="thprev" data-d="${d}">↺ Wczorajsza</button>`:''}${thEdit===d?'<button type="button" class="th-chip" data-act="thcancel">Anuluj</button>':''}${d===t&&!S.settings.thoughtRem?'<button type="button" class="th-chip" data-act="threm">🔔 Przypominaj codziennie</button>':''}</div></section>`;
  }
  if(!th)return `<button type="button" class="thought empty" data-act="thedit" data-d="${d}"><span class="th-l">✦ ${lab}</span>Tego dnia nie zapisano myśli · stuknij, aby dodać</button>`;
  const st=d===t?thStreak():0;
- return `<section class="thought${th.t.length>110?' long':''}" data-act="thedit" data-d="${d}" role="button" aria-label="${lab}: ${esc(th.t)}. Stuknij, aby edytować"><span class="th-l">✦ ${lab}</span><blockquote>${esc(th.t)}</blockquote>${st>1?`<span class="th-m">🔥 ${st} ${plural(st,'dzień','dni','dni')} z rzędu z myślą przewodnią</span>`:''}<span class="th-ed" aria-hidden="true">✎</span></section>`;
+ return `<section class="thought${th.t.length>110?' long':''}" data-act="thedit" data-d="${d}" role="button" aria-label="${lab}: ${esc(th.t)}. Stuknij, aby edytować"><span class="th-l">✦ ${lab}</span><blockquote>${esc(th.t)}</blockquote>${st>1?`<span class="th-m">🔥 ${st} ${plural(st,'dzień','dni','dni')} z rzędu z myślą przewodnią</span>`:''}${d===t&&!S.settings.thoughtRem?'<button type="button" class="th-rem" data-act="threm">🔔 Przypominaj mi codziennie</button>':''}<span class="th-ed" aria-hidden="true">✎</span></section>`;
 }
 function renderToday(){
  const t=today(),d=vd(),rl=relDay(d);
@@ -1585,6 +1589,33 @@ function hitHabit(h,d,delta){
  return n>=h.target&&c<h.target;
 }
 
+/* ---------- daily guiding-thought notification ---------- */
+const TR_TIMES=['05:00','05:30','06:00','06:30','07:00','07:30','08:00','08:30','09:00','09:30','10:00'];
+const appUrl=()=>location.href.replace(/[#?].*$/,'').replace(/[^/]*$/,'');
+function remFileUrl(time,scheme){const u=appUrl()+'przypomnienia/mysl-'+time.replace(':','')+'.ics';return scheme==='webcal'?u.replace(/^https?:/,'webcal:'):u}
+function gcalDaily(time){
+ const d=addD(today(),1),p=new URLSearchParams({action:'TEMPLATE',text:'✦ Myśl przewodnia dnia',details:'Otwórz Dziennik i zapisz myśl, która poprowadzi Cię dziś: '+appUrl(),recur:'RRULE:FREQ=DAILY'});
+ p.set('dates',cmp(d)+'T'+hm6(time)+'/'+cmp(d)+'T'+hm6(fromMin(toMin(time)+5)));
+ try{p.set('ctz',Intl.DateTimeFormat().resolvedOptions().timeZone)}catch(e){}
+ return 'https://calendar.google.com/calendar/render?'+p.toString();
+}
+function thoughtRemSheet(){
+ const st=S.settings.thoughtRem,t0=st?st.time:'07:00';
+ openSheet({title:'Codzienne powiadomienie',closeLabel:'Gotowe',
+  body:()=>`<p class="mut" style="margin:0 0 14px">Codziennie o wybranej porze iPhone pokaże powiadomienie <b style="color:var(--ink)">„✦ Jaka myśl poprowadzi Cię dziś?”</b> — także gdy Dziennik jest zamknięty.</p>
+  ${st?`<p class="hint" style="margin:-4px 2px 14px;color:var(--ok)">✓ Ustawione: codziennie o ${st.time} · ${st.via==='gc'?'Kalendarz Google':'Kalendarz iPhone’a'} (od ${fds(st.at)})</p>`:''}
+  <div class="f"><span>O której godzinie?</span><div class="chips trtimes" data-chips="trt" data-change="trtime">${TR_TIMES.map(x=>`<button type="button" data-v="${x}" class="${x===t0?'on':''}">${x}</button>`).join('')}</div></div>
+  <a class="btn" id="trCal" href="${remFileUrl(t0,'webcal')}" data-act="trset" data-via="cal">📅 Włącz w Kalendarzu iPhone'a</a>
+  <p class="hint" style="margin:8px 2px 18px">iPhone zapyta o subskrypcję kalendarza — stuknij <b>Subskrybuj</b>, a potem <b>Dodaj</b>. Jeśli zobaczysz przełącznik <b>„Usuń alerty”</b>, wyłącz go, inaczej powiadomienie nie przyjdzie.</p>
+  <a class="btn sec" id="trGc" href="${gcalDaily(t0)}" target="_blank" rel="noopener" data-act="trset" data-via="gc">Albo w Kalendarzu Google</a>
+  <details class="steps" style="margin-top:16px"><summary>Zmiana godziny i inne sposoby</summary>
+   <p><b>Zmiana godziny:</b> włącz nową godzinę przyciskiem powyżej, a stary kalendarz „Dziennik — myśl przewodnia” usuń w aplikacji Kalendarz → Kalendarze → ⓘ → Usuń kalendarz.</p>
+   <p><b>Bez kalendarza:</b> w aplikacji Przypomnienia dodaj „✦ Myśl przewodnia”, w szczegółach ustaw godzinę i <b>Powtarzaj: Codziennie</b>.</p>
+   <p><b>Gdy przycisk nie otwiera Kalendarza:</b> Ustawienia → Kalendarz → Konta → Dodaj konto → Inne → Dodaj subskrybowany kalendarz i wklej skopiowany adres.</p>
+   <div style="padding:0 14px 14px"><button type="button" class="btn sec" data-act="trcopy">Kopiuj adres kalendarza</button></div></details>`,
+ });
+}
+
 /* ---------- settings ---------- */
 function settingsSheet(){
  let wa=S.areas.map(a=>Object.assign({},a));
@@ -1593,7 +1624,11 @@ function settingsSheet(){
  const syncNames=()=>{shBody.querySelectorAll('[data-ai]').forEach(el=>{const a=wa[+el.dataset.ai];if(a)a.name=el.value})};
  openSheet({title:'Ustawienia',
   areas:{get:()=>wa,render:()=>{syncNames();$('#areasBox').innerHTML=areasHtml()}},
-  body:()=>`<h4 class="sh-sec">Przypomnienia na iPhonie</h4>
+  body:()=>`<h4 class="sh-sec">Codzienna myśl przewodnia</h4>
+  <p class="mut small" style="margin:-4px 0 10px">${st.thoughtRem?'Powiadomienie codziennie o '+st.thoughtRem.time+' ('+(st.thoughtRem.via==='gc'?'Kalendarz Google':'Kalendarz iPhone’a')+').':'Codzienne powiadomienie, żeby nie zapomnieć wpisać myśli na dziś.'}</p>
+  <button type="button" class="btn sec" data-act="threm">🔔 ${st.thoughtRem?'Zmień':'Ustaw'} codzienne powiadomienie</button>
+
+  <h4 class="sh-sec">Przypomnienia o wydarzeniach</h4>
   <p class="mut small" style="margin:-4px 0 12px">Aplikacja webowa nie może sama wysyłać powiadomień przy zamkniętym ekranie, więc przekazuje przypomnienie do aplikacji iPhone'a, która to potrafi.</p>
   <div class="opts" data-chips="remind" data-change="remchange">
    <button type="button" data-v="sc" class="${st.remind==='sc'?'on':''}"><b>Aplikacja Przypomnienia (przez Skróty)</b><span>Najpewniejsze — prawdziwe powiadomienie o wybranej porze. Wymaga jednorazowego utworzenia skrótu (2 min).</span></button>
@@ -1790,6 +1825,10 @@ const A={
  mood(b){const d=b.dataset.d,m=+b.dataset.m,r=S.days[d]||{mood:0,win:'',grat:'',note:''};const had=hasRefl(S.days[d]);r.mood=r.mood===m?0:m;if(hasRefl(r))S.days[d]=r;else delete S.days[d];commit();if(!had&&r.mood)toast(MOOD[m]+' Zapisano nastrój · +'+XP.refl+' XP')},
  refl(b){reflSheet(b.dataset.d)},
  thedit(b){thEdit=b.dataset.d;render();const el=$('#thIn');if(el){el.focus();const n=el.value.length;try{el.setSelectionRange(n,n)}catch(e){}}},
+ threm(){thoughtRemSheet()},
+ trtime(box,chip){const t=chip.dataset.v;$('#trCal').href=remFileUrl(t,'webcal');$('#trGc').href=gcalDaily(t)},
+ trset(b){const t=chipVal('trt')||'07:00';S.settings.thoughtRem={time:t,via:b.dataset.via,at:today()};save();render();toast(b.dataset.via==='gc'?'Zapisz wydarzenie w Kalendarzu Google':'Potwierdź w Kalendarzu: Subskrybuj → Dodaj',4000)},
+ trcopy(){const u=remFileUrl(chipVal('trt')||'07:00');const ok=()=>toast('Skopiowano adres kalendarza');if(navigator.clipboard&&navigator.clipboard.writeText)navigator.clipboard.writeText(u).then(ok,()=>toast(u,8000));else toast(u,8000)},
  thcancel(){if(thEdit)delete thDraft[thEdit];thEdit=null;render()},
  thinsp(){const el=$('#thIn');if(!el)return;let x;do{x=THOUGHT_SUGG[Math.floor(Math.random()*THOUGHT_SUGG.length)]}while(x===el.value);el.value=x;thDraft[el.dataset.d]=x},
  thprev(b){const d=b.dataset.d,p=S.thoughts[addD(d,-1)],el=$('#thIn');if(p&&el){el.value=p.t;thDraft[d]=p.t}},
