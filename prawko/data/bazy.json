@@ -1,0 +1,11 @@
+{
+ "bazy": [
+  {
+   "id": "wlasne",
+   "plik": "pytania-wlasne.json",
+   "nazwa": "Pytania autorskie z objaśnieniami",
+   "oficjalna": false,
+   "liczba": 200
+  }
+ ]
+}

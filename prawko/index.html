@@ -1,0 +1,1115 @@
+<!doctype html>
+<html lang="pl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Prawko">
+<meta name="theme-color" content="#0d0f12">
+<meta name="color-scheme" content="dark">
+<meta name="format-detection" content="telephone=no">
+<link rel="apple-touch-icon" href="icon-180.png">
+<link rel="icon" type="image/png" sizes="192x192" href="icon-192.png">
+<link rel="manifest" href="manifest.webmanifest">
+<title>Prawko – teoria</title>
+<style>
+:root{
+  --bg:#0d0f12;--panel:#16191e;--panel2:#1f2329;--panel3:#2a2f38;--ink:#f1f3f6;--mut:#8b94a3;--faint:#4d5461;--line:#272c34;
+  --acc:#4f8cff;--acc2:#8fb6ff;--acc-ink:#06142e;--acc-soft:rgba(79,140,255,.15);
+  --ok:#4ade80;--ok-soft:rgba(74,222,128,.13);--bad:#ff6b6b;--bad-soft:rgba(255,107,107,.13);--warn:#fbbf24;--warn-soft:rgba(251,191,36,.13);
+  --st:env(safe-area-inset-top,0px);--sb:env(safe-area-inset-bottom,0px);
+  --sans:-apple-system,BlinkMacSystemFont,"SF Pro Text",system-ui,"Segoe UI",Roboto,sans-serif;
+  --round:ui-rounded,"SF Pro Rounded",-apple-system,BlinkMacSystemFont,system-ui,sans-serif;
+  color-scheme:dark;
+}
+*,*::before,*::after{box-sizing:border-box}
+[hidden]{display:none!important}
+html{background:var(--bg);-webkit-text-size-adjust:100%}
+body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.45 var(--sans);-webkit-tap-highlight-color:transparent;padding-bottom:calc(96px + var(--sb));overscroll-behavior-y:none}
+body.lock{overflow:hidden}
+button{font:inherit;color:inherit;background:none;border:0;padding:0;touch-action:manipulation;-webkit-user-select:none;user-select:none;cursor:pointer}
+button:disabled{cursor:default;opacity:.45}
+input,select,textarea{font:inherit;color:inherit}
+a{color:var(--acc2)}
+.wrap{max-width:680px;margin:0 auto;padding:0 16px}
+svg.i{width:22px;height:22px;fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:round;stroke-linejoin:round;flex:none}
+.mut{color:var(--mut)}.small{font-size:13px}.center{text-align:center}
+
+/* header */
+header.top{position:sticky;top:0;z-index:20;background:rgba(13,15,18,.86);-webkit-backdrop-filter:saturate(1.6) blur(18px);backdrop-filter:saturate(1.6) blur(18px);padding-top:var(--st);border-bottom:1px solid transparent;transition:border-color .2s}
+header.top.scrolled{border-bottom-color:var(--line)}
+.top-in{display:flex;align-items:center;justify-content:space-between;gap:12px;max-width:680px;margin:0 auto;padding:10px 16px}
+h1{font:800 30px/1.1 var(--round);margin:0;letter-spacing:-.4px}
+.chip{display:inline-flex;align-items:center;gap:6px;border:1px solid var(--line);background:var(--panel);border-radius:99px;padding:7px 13px;font:600 14px var(--sans);white-space:nowrap}
+.chip b{color:var(--acc2)}
+
+/* tabbar */
+.tabbar{position:fixed;left:0;right:0;bottom:0;z-index:16;display:flex;justify-content:space-around;padding:6px 4px calc(6px + var(--sb));background:rgba(19,21,26,.92);-webkit-backdrop-filter:saturate(1.6) blur(18px);backdrop-filter:saturate(1.6) blur(18px);border-top:1px solid var(--line)}
+.tabbar button{flex:1;max-width:130px;display:flex;flex-direction:column;align-items:center;gap:3px;padding:4px 0 2px;color:var(--mut);font:500 10.5px var(--sans)}
+.tabbar svg{width:25px;height:25px;stroke-width:1.9}
+.tabbar button.on{color:var(--acc2)}
+
+/* cards & common */
+h2{font:700 21px/1.25 var(--round);margin:22px 0 10px}
+h3{font:700 17px/1.3 var(--sans);margin:22px 0 8px}
+.card{background:var(--panel);border:1px solid var(--line);border-radius:18px;padding:14px 16px;margin:0 0 12px}
+.row{display:flex;align-items:center;gap:12px}
+.row.sb{justify-content:space-between}
+.grow{flex:1;min-width:0}
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:8px;border-radius:14px;padding:13px 18px;font:650 16px var(--sans);background:var(--panel2);border:1px solid var(--line)}
+.btn.pri{background:var(--acc);border-color:var(--acc);color:#fff}
+.btn.ok{background:var(--ok);border-color:var(--ok);color:#06210f}
+.btn.danger{color:var(--bad)}
+.btn.block{display:flex;width:100%}
+.btn.sm{padding:9px 13px;font-size:14px;border-radius:12px}
+.btns{display:flex;gap:10px;flex-wrap:wrap}
+.btns>.btn{flex:1}
+.note{display:flex;gap:12px;align-items:flex-start;border-radius:16px;padding:12px 14px;margin:0 0 12px;font-size:14px;background:var(--acc-soft);border:1px solid rgba(79,140,255,.35);color:#cfe0ff}
+.note.warn{background:var(--warn-soft);border-color:rgba(251,191,36,.35);color:#ffe3a3}
+.note b{color:var(--ink)}
+.note .x{margin-left:auto;color:var(--mut);font-size:22px;line-height:1;padding:0 2px}
+.note p{margin:0 0 6px}.note p:last-child{margin:0}
+.tag{display:inline-block;font:600 12px var(--sans);color:var(--mut);background:var(--panel2);border:1px solid var(--line);border-radius:8px;padding:2px 8px;margin:0 4px 4px 0}
+.tag.acc{color:var(--acc2);border-color:rgba(79,140,255,.35);background:var(--acc-soft)}
+.empty{text-align:center;color:var(--mut);padding:28px 10px}
+
+/* hero */
+.hero{display:flex;gap:16px;align-items:center;background:linear-gradient(135deg,#1a2740,#16191e 70%);border:1px solid #23324d;border-radius:22px;padding:16px;margin:6px 0 12px}
+.ring{width:96px;height:96px;flex:none;position:relative}
+.ring svg{width:100%;height:100%;transform:rotate(-90deg)}
+.ring .v{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;font:800 22px var(--round)}
+.ring .v small{font:500 11px var(--sans);color:var(--mut)}
+.hero .big{font:800 20px/1.2 var(--round)}
+.legend{display:flex;flex-wrap:wrap;gap:4px 12px;margin-top:8px;font-size:13px;color:var(--mut)}
+.legend i{display:inline-block;width:9px;height:9px;border-radius:3px;margin-right:5px;vertical-align:0}
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin:0 0 12px}
+.act{display:flex;flex-direction:column;align-items:flex-start;gap:4px;text-align:left;background:var(--panel);border:1px solid var(--line);border-radius:18px;padding:14px;min-height:86px}
+.act .e{font-size:22px;line-height:1}
+.act b{font:700 15.5px var(--sans)}
+.act small{color:var(--mut);font-size:12.5px}
+.act.main{grid-column:1/-1;background:var(--acc);border-color:var(--acc);color:#fff;flex-direction:row;align-items:center;min-height:0}
+.act.main small{color:#dbe7ff}
+.act.main .e{font-size:28px}
+
+/* segmented & options */
+.seg{display:flex;background:var(--panel);border:1px solid var(--line);border-radius:14px;padding:3px;gap:3px;margin:0 0 12px}
+.seg button{flex:1;padding:9px 6px;border-radius:11px;font:600 13.5px var(--sans);color:var(--mut)}
+.seg button.on{background:var(--panel3);color:var(--ink)}
+.opts{display:grid;gap:8px;margin:0 0 12px}
+.opt{display:flex;align-items:center;gap:12px;text-align:left;background:var(--panel);border:1px solid var(--line);border-radius:16px;padding:12px 14px}
+.opt .e{font-size:20px;width:28px;text-align:center;flex:none}
+.opt b{display:block;font:650 15px var(--sans)}
+.opt small{color:var(--mut);font-size:12.5px}
+.opt .n{margin-left:auto;font:700 15px var(--sans);color:var(--mut);font-variant-numeric:tabular-nums}
+.opt.on{border-color:var(--acc);background:var(--acc-soft)}
+.opt.on .n{color:var(--acc2)}
+.sel{width:100%;background:var(--panel);border:1px solid var(--line);border-radius:14px;padding:12px 14px;margin:0 0 12px;-webkit-appearance:none;appearance:none}
+.search{display:flex;align-items:center;gap:8px;background:var(--panel);border:1px solid var(--line);border-radius:14px;padding:0 12px;margin:0 0 12px}
+.search input{flex:1;min-width:0;background:transparent;border:0;outline:0;padding:12px 0}
+.list{display:grid;gap:8px}
+.li{display:flex;gap:12px;align-items:flex-start;text-align:left;background:var(--panel);border:1px solid var(--line);border-radius:16px;padding:12px 14px}
+.li .e{font-size:22px;line-height:1.2;flex:none;width:28px;text-align:center}
+.li b{display:block;font:650 15px var(--sans)}
+.li small{display:block;color:var(--mut);font-size:12.5px;margin-top:2px}
+.li .r{margin-left:auto;align-self:center;color:var(--faint)}
+.dot{display:inline-block;width:9px;height:9px;border-radius:50%;flex:none;margin-top:6px}
+.st-new{background:var(--faint)}.st-mid{background:var(--warn)}.st-bad{background:var(--bad)}.st-ok{background:var(--ok)}
+.bar{display:flex;height:8px;border-radius:99px;overflow:hidden;background:var(--panel2);margin:6px 0 0}
+.bar i{display:block;height:100%}
+.sw{position:relative;display:inline-block;width:51px;height:31px;flex:none}
+.sw input{position:absolute;opacity:0;inset:0;margin:0;width:100%;height:100%;cursor:pointer}
+.sw span{position:absolute;inset:0;border-radius:99px;background:var(--panel2);border:1px solid var(--line);transition:background .2s;pointer-events:none}
+.sw span::after{content:"";position:absolute;left:2px;top:2px;width:25px;height:25px;border-radius:50%;background:#fff;transition:transform .2s;box-shadow:0 2px 4px rgba(0,0,0,.3)}
+.sw input:checked+span{background:var(--ok);border-color:var(--ok)}
+.sw input:checked+span::after{transform:translateX(20px)}
+.setrow{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:10px 0;border-top:1px solid var(--line)}
+.setrow:first-child{border-top:0}
+.setrow small{display:block;color:var(--mut);font-size:12.5px}
+.cats{display:flex;flex-wrap:wrap;gap:6px}
+.cats button{min-width:52px;padding:9px 10px;border-radius:12px;background:var(--panel2);border:1px solid var(--line);font:700 14px var(--sans)}
+.cats button.on{background:var(--acc);border-color:var(--acc);color:#fff}
+.days{display:flex;align-items:flex-end;gap:4px;height:70px;margin:8px 0 4px}
+.days i{flex:1;background:var(--acc);border-radius:4px 4px 2px 2px;min-height:3px;opacity:.85}
+.days i.z{background:var(--panel3)}
+.kv{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin:8px 0}
+.kv div{background:var(--panel2);border-radius:12px;padding:10px;text-align:center}
+.kv b{display:block;font:800 20px var(--round);font-variant-numeric:tabular-nums}
+.kv small{color:var(--mut);font-size:12px}
+
+/* rules */
+.art{font-size:15.5px;line-height:1.55}
+.art p{margin:0 0 10px}
+.art ul,.art ol{margin:0 0 12px;padding-left:22px}
+.art li{margin:0 0 6px}
+.art .lead{font-size:16.5px}
+.art ol.steps li::marker{color:var(--acc2);font-weight:700}
+.box{border-radius:14px;padding:12px 14px;margin:12px 0;font-size:15px}
+.box ul{margin:0;padding-left:20px}
+.box.rule{background:var(--acc-soft);border:1px solid rgba(79,140,255,.35)}
+.box.warn{background:var(--warn-soft);border:1px solid rgba(251,191,36,.35)}
+.box.tip{background:var(--ok-soft);border:1px solid rgba(74,222,128,.3)}
+.box.law{background:var(--panel2);border-left:4px solid var(--acc);font-style:italic;color:#d6dbe3}
+.tbl{width:100%;border-collapse:collapse;margin:8px 0 14px;font-size:14px}
+.tbl th,.tbl td{border-bottom:1px solid var(--line);padding:8px 6px;text-align:left;vertical-align:top}
+.tbl th{color:var(--mut);font-weight:600;font-size:12.5px}
+dl.defs{margin:0}
+dl.defs dt{font-weight:700;margin-top:10px;color:var(--acc2)}
+dl.defs dd{margin:2px 0 0}
+.signs{display:grid;grid-template-columns:repeat(auto-fill,minmax(96px,1fr));gap:10px;margin:10px 0 14px}
+.sign{margin:0;background:var(--panel2);border:1px solid var(--line);border-radius:14px;padding:10px 6px 8px;text-align:center}
+.sign-i{width:64px;height:64px;margin:0 auto 6px}
+.sign-i svg{width:100%;height:100%}
+.sign figcaption{font-size:12px;line-height:1.3;color:var(--mut)}
+.sign figcaption b{color:var(--ink)}
+mark{background:rgba(251,191,36,.45);color:inherit;border-radius:3px;padding:0 1px}
+.art-head{display:flex;align-items:center;gap:10px;margin:8px 0 6px}
+.art-head .e{font-size:30px}
+.art-head h2{margin:0}
+.snip{font-size:12.5px;color:var(--mut);margin-top:4px}
+
+/* session overlay */
+.ov{position:fixed;inset:0;z-index:40;background:var(--bg);display:flex;flex-direction:column}
+.ov-top{flex:none;display:flex;align-items:center;gap:10px;padding:calc(var(--st) + 8px) 12px 8px;border-bottom:1px solid var(--line);background:rgba(13,15,18,.95)}
+.ov-top .ttl{flex:1;min-width:0;text-align:center;font:650 15px var(--sans)}
+.ov-top .ttl small{display:block;color:var(--mut);font-weight:500;font-size:12px}
+.ibtn{width:40px;height:40px;border-radius:12px;display:inline-flex;align-items:center;justify-content:center;background:var(--panel);border:1px solid var(--line);flex:none;font-size:18px}
+.ibtn.on{color:var(--warn);border-color:rgba(251,191,36,.4)}
+.ov-body{flex:1;overflow-y:auto;-webkit-overflow-scrolling:touch;padding:12px 16px 20px}
+.ov-body>div{max-width:680px;margin:0 auto}
+.ov-foot{flex:none;padding:10px 16px calc(10px + var(--sb));border-top:1px solid var(--line);background:rgba(13,15,18,.95)}
+.ov-foot>div{max-width:680px;margin:0 auto;display:flex;gap:10px}
+.ov-foot .btn{flex:1}
+.pbar{height:3px;background:var(--panel2)}
+.pbar i{display:block;height:100%;background:var(--acc);transition:width .2s}
+.timer{display:flex;align-items:center;gap:10px;margin:0 0 10px;font:600 14px var(--sans);color:var(--mut)}
+.timer .tb{flex:1;height:8px;border-radius:99px;background:var(--panel2);overflow:hidden}
+.timer .tb i{display:block;height:100%;background:var(--acc);transition:width .2s linear}
+.timer.low .tb i{background:var(--bad)}
+.timer b{color:var(--ink);font-variant-numeric:tabular-nums;min-width:38px;text-align:right}
+.media{position:relative;background:#000;border-radius:16px;overflow:hidden;margin:0 0 12px;aspect-ratio:16/9;display:flex;align-items:center;justify-content:center}
+.media img,.media video{width:100%;height:100%;object-fit:contain;display:block}
+.media .ph{color:var(--mut);text-align:center;padding:16px;font-size:14px}
+.media .ph b{display:block;color:var(--ink);font-size:15px;margin-bottom:4px}
+.media .startb{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:10px;background:rgba(13,15,18,.85);color:var(--ink);font:600 15px var(--sans)}
+.media .startb span{background:var(--acc);color:#fff;border-radius:14px;padding:12px 26px;font:700 17px var(--sans)}
+.media .replay{position:absolute;right:10px;bottom:10px;background:rgba(0,0,0,.6);color:#fff;border-radius:10px;padding:6px 10px;font-size:13px}
+.qtext{font:650 18px/1.4 var(--sans);margin:4px 0 14px}
+.ans{display:grid;gap:10px}
+.ans.tn{grid-template-columns:1fr 1fr}
+.ans button{display:flex;align-items:center;gap:12px;text-align:left;background:var(--panel);border:2px solid var(--line);border-radius:16px;padding:14px;font:600 16px/1.35 var(--sans);min-height:56px}
+.ans.tn button{justify-content:center;font:800 18px var(--sans);letter-spacing:.5px}
+.ans button .l{flex:none;width:30px;height:30px;border-radius:9px;background:var(--panel2);display:inline-flex;align-items:center;justify-content:center;font:800 15px var(--sans)}
+.ans button.sel{border-color:var(--acc);background:var(--acc-soft)}
+.ans button.sel .l{background:var(--acc);color:#fff}
+.ans button.good{border-color:var(--ok);background:var(--ok-soft)}
+.ans button.good .l{background:var(--ok);color:#06210f}
+.ans button.wrong{border-color:var(--bad);background:var(--bad-soft)}
+.ans button.wrong .l{background:var(--bad);color:#2a0606}
+.fb{margin:14px 0 0;border-radius:16px;padding:12px 14px;font-size:15px}
+.fb.good{background:var(--ok-soft);border:1px solid rgba(74,222,128,.35)}
+.fb.wrong{background:var(--bad-soft);border:1px solid rgba(255,107,107,.35)}
+.fb h4{margin:0 0 6px;font:750 16px var(--sans)}
+.fb.good h4{color:var(--ok)}.fb.wrong h4{color:var(--bad)}
+.fb p{margin:6px 0 0}
+.fb .lbl{display:block;font:650 12px var(--sans);color:var(--mut);text-transform:uppercase;letter-spacing:.4px;margin-top:8px}
+.fb .lnk{display:inline-flex;align-items:center;gap:6px;margin-top:10px;color:var(--acc2);font:650 14.5px var(--sans)}
+.res{text-align:center;padding:16px 0 6px}
+.res .sc{font:850 56px/1 var(--round);font-variant-numeric:tabular-nums}
+.res .sc small{font-size:24px;color:var(--mut)}
+.res .verdict{display:inline-block;margin:10px 0 4px;border-radius:99px;padding:6px 16px;font:750 16px var(--sans)}
+.res .verdict.pass{background:var(--ok-soft);color:var(--ok)}
+.res .verdict.fail{background:var(--bad-soft);color:var(--bad)}
+.rv{border-top:1px solid var(--line);padding:10px 0}
+.rv summary{list-style:none;display:flex;gap:10px;align-items:flex-start;cursor:pointer}
+.rv summary::-webkit-details-marker{display:none}
+.ic{flex:none;width:24px;height:24px;border-radius:7px;display:inline-flex;align-items:center;justify-content:center;font:800 13px var(--sans)}
+.ic.y{background:var(--ok-soft);color:var(--ok)}.ic.n{background:var(--bad-soft);color:var(--bad)}
+.rv .tx{flex:1;min-width:0;font-size:14.5px}
+.rv .tx small{display:block;color:var(--mut);font-size:12px}
+.rv .det{padding:10px 0 2px 34px;font-size:14.5px}
+
+.toast{position:fixed;left:50%;bottom:calc(92px + var(--sb));transform:translateX(-50%) translateY(20px);opacity:0;z-index:60;background:var(--panel3);color:var(--ink);border:1px solid var(--line);border-radius:14px;padding:11px 16px;font:600 14px var(--sans);box-shadow:0 10px 30px rgba(0,0,0,.5);transition:opacity .2s,transform .2s;pointer-events:none;max-width:calc(100% - 32px);text-align:center}
+.toast.on{opacity:1;transform:translateX(-50%) translateY(0)}
+.prog{margin:10px 0 0;font-size:13px;color:var(--mut)}
+@media (min-width:700px){.ans.tn{max-width:520px}}
+</style>
+</head>
+<body>
+<header class="top" id="hdr">
+  <div class="top-in">
+    <h1 id="ttl">Prawko</h1>
+    <button class="chip" id="catChip" data-a="go-more-base" aria-label="Kategoria i baza pytań"></button>
+  </div>
+</header>
+<main class="wrap" id="view"></main>
+<nav class="tabbar" id="tabbar" aria-label="Zakładki">
+  <button data-tab="start"><svg class="i" viewBox="0 0 24 24"><path d="M3 11l9-7 9 7v9a1 1 0 0 1-1 1h-5v-6H9v6H4a1 1 0 0 1-1-1z"/></svg>Start</button>
+  <button data-tab="nauka"><svg class="i" viewBox="0 0 24 24"><path d="M2 6c3-1.5 6.5-1.5 10 1 3.5-2.5 7-2.5 10-1v13c-3-1.5-6.5-1.5-10 1-3.5-2.5-7-2.5-10-1z"/><path d="M12 7v13"/></svg>Nauka</button>
+  <button data-tab="egzamin"><svg class="i" viewBox="0 0 24 24"><rect x="5" y="3" width="14" height="18" rx="2"/><path d="M9 8h6M9 12h6M9 16h3"/></svg>Egzamin</button>
+  <button data-tab="przepisy"><svg class="i" viewBox="0 0 24 24"><path d="M12 3l9 16H3z"/><path d="M12 10v4M12 17v.5"/></svg>Przepisy</button>
+  <button data-tab="wiecej"><svg class="i" viewBox="0 0 24 24"><path d="M4 20V10M10 20V4M16 20v-7M22 20H2"/></svg>Więcej</button>
+</nav>
+<div class="ov" id="sess" hidden></div>
+<div class="ov" id="ruleov" hidden></div>
+<div class="toast" id="toast" role="status" aria-live="polite"></div>
+<input type="file" id="fileBase" accept=".xlsx,.xlsm,.json,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet,application/json" hidden>
+<input type="file" id="fileMedia" accept="image/*,video/*,.wmv,.mp4,.jpg,.jpeg,.png,.webp" multiple hidden>
+<input type="file" id="fileBackup" accept=".json,application/json" hidden>
+<script src="znaki.js"></script>
+<script src="przepisy.js"></script>
+<script>
+'use strict';
+const $ = (s, r = document) => r.querySelector(s);
+const $$ = (s, r = document) => [...r.querySelectorAll(s)];
+const esc = (s) => String(s ?? '').replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+const fold = (s) => String(s ?? '').normalize('NFD').replace(/[̀-ͯ]/g, '').replace(/ł/g, 'l').replace(/Ł/g, 'L');
+const foldLow = (s) => fold(s).toLowerCase();
+const LS = 'prawko-v1';
+const CATS = ['AM', 'A1', 'A2', 'A', 'B1', 'B', 'C1', 'C', 'D1', 'D', 'T', 'PT'];
+const CH = Object.fromEntries((window.PRZEPISY || []).map((c) => [c.id, c]));
+const IMG_EXT = /\.(jpe?g|png|gif|webp|bmp)$/i, VID_EXT = /\.(mp4|m4v|mov|webm|wmv|avi|mpe?g|mkv)$/i;
+const EXAM_PLAN = { P: { 3: 10, 2: 6, 1: 4 }, S: { 3: 6, 2: 4, 1: 2 } };
+const TIME = { read: 20, answerP: 15, answerS: 50 };
+
+let S;                 // stan zapisywany w telefonie
+let MAN = { bazy: [] };// lista dostępnych baz pytań
+let BASE = null;       // aktywna baza: { id, info, meta, q, byId, hasCh }
+let MEDIA = new Set(); // klucze multimediów zaimportowanych do pamięci telefonu
+const urlCache = new Map();
+let tab = 'start', ruleOpen = null, ruleQuery = '', searchQ = '';
+let X = null;          // aktywna sesja nauki/egzaminu
+let timerInt = null;
+
+/* ---------- stan ---------- */
+function today(d = new Date()) { return d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0') + '-' + String(d.getDate()).padStart(2, '0'); }
+function defaultState() {
+  return { v: 1, cat: 'B', base: null, prog: {}, fav: {}, exams: [], days: {}, pos: {},
+    lf: { part: 'all', mode: 'kolejno', ch: '', med: 'all' },
+    set: { autoNext: false, hideNoMedia: true }, hideInstall: false };
+}
+function normalize(s) {
+  const d = defaultState();
+  const o = Object.assign(d, s || {});
+  o.lf = Object.assign(defaultState().lf, o.lf || {});
+  o.set = Object.assign(defaultState().set, o.set || {});
+  for (const k of ['prog', 'fav', 'days', 'pos']) if (!o[k] || typeof o[k] !== 'object' || Array.isArray(o[k])) o[k] = {};
+  if (!Array.isArray(o.exams)) o.exams = [];
+  if (!CATS.includes(o.cat)) o.cat = 'B';
+  return o;
+}
+let saveWarned = false;
+function save() { try { localStorage.setItem(LS, JSON.stringify(S)); } catch (e) { if (!saveWarned) { saveWarned = true; toast('Nie udało się zapisać postępu na telefonie'); } } }
+function load() { let s = null; try { const r = localStorage.getItem(LS); if (r) s = JSON.parse(r); } catch (e) {} S = normalize(s); }
+
+/* ---------- IndexedDB (zaimportowana baza i multimedia) ---------- */
+const DB = {
+  _p: null,
+  open() {
+    if (this._p) return this._p;
+    this._p = new Promise((res, rej) => {
+      if (!('indexedDB' in window)) return rej(new Error('Brak IndexedDB'));
+      const r = indexedDB.open('prawko', 1);
+      r.onupgradeneeded = () => { const d = r.result; for (const n of ['kv', 'media']) if (!d.objectStoreNames.contains(n)) d.createObjectStore(n); };
+      r.onsuccess = () => res(r.result);
+      r.onerror = () => rej(r.error);
+    });
+    this._p.catch(() => { this._p = null; });
+    return this._p;
+  },
+  async run(store, mode, fn) {
+    const d = await this.open();
+    return new Promise((res, rej) => {
+      const t = d.transaction(store, mode); const st = t.objectStore(store);
+      let out; const r = fn(st);
+      if (r && 'onsuccess' in r) r.onsuccess = () => { out = r.result; };
+      t.oncomplete = () => res(out); t.onerror = () => rej(t.error); t.onabort = () => rej(t.error || new Error('Przerwano zapis'));
+    });
+  },
+  get(s, k) { return this.run(s, 'readonly', (st) => st.get(k)); },
+  put(s, k, v) { return this.run(s, 'readwrite', (st) => st.put(v, k)); },
+  del(s, k) { return this.run(s, 'readwrite', (st) => st.delete(k)); },
+  keys(s) { return this.run(s, 'readonly', (st) => st.getAllKeys()); },
+  clear(s) { return this.run(s, 'readwrite', (st) => st.clear()); },
+  putMany(s, entries) { return this.run(s, 'readwrite', (st) => { for (const [k, v] of entries) st.put(v, k); }); }
+};
+
+/* ---------- bazy pytań ---------- */
+async function loadManifest() {
+  try { const r = await fetch('data/bazy.json', { cache: 'no-cache' }); if (r.ok) MAN = await r.json(); } catch (e) {}
+  if (!MAN || !Array.isArray(MAN.bazy) || !MAN.bazy.length) MAN = { bazy: [{ id: 'wlasne', plik: 'pytania-wlasne.json', nazwa: 'Pytania autorskie z objaśnieniami', oficjalna: false }] };
+  try {
+    const m = await DB.get('kv', 'import-meta');
+    if (m) MAN.bazy.push({ id: 'import', import: true, nazwa: 'Oficjalna baza (zaimportowana)', oficjalna: true, wersja: m.wersja, liczba: m.liczba });
+  } catch (e) {}
+  try { MEDIA = new Set(await DB.keys('media')); } catch (e) { MEDIA = new Set(); }
+}
+function pickDefaultBase() {
+  const ids = MAN.bazy.map((b) => b.id);
+  if (S.base && ids.includes(S.base)) return S.base;
+  const off = MAN.bazy.find((b) => b.oficjalna);
+  return off ? off.id : ids[0];
+}
+async function useBase(id) {
+  const info = MAN.bazy.find((b) => b.id === id) || MAN.bazy[0];
+  let data;
+  if (info.import) data = { meta: await DB.get('kv', 'import-meta'), q: await DB.get('kv', 'import-q') };
+  else { const r = await fetch('data/' + info.plik); if (!r.ok) throw new Error('Nie udało się wczytać bazy ' + info.plik); data = await r.json(); }
+  const q = Array.isArray(data.q) ? data.q : [];
+  BASE = { id: info.id, info, meta: data.meta || {}, q, byId: new Map(q.map((x) => [String(x.id), x])), hasCh: q.some((x) => x.ch), hasMedia: q.some((x) => x.m) };
+  if (S.base !== info.id) { S.base = info.id; save(); }
+}
+const hasCat = (q) => !q.c || !q.c.length || q.c.includes(S.cat);
+const stemOf = (name) => String(name || '').toLowerCase().replace(/\.[^.]+$/, '');
+function mediaKind(q) { if (!q.m) return null; if (VID_EXT.test(q.m)) return 'vid'; if (IMG_EXT.test(q.m)) return 'img'; return 'img'; }
+function mediaAvailable(q) { if (!q.m) return true; if (BASE.meta && BASE.meta.media) return true; return MEDIA.has(stemOf(q.m)); }
+function pool() { return BASE ? BASE.q.filter((q) => hasCat(q) && (!S.set.hideNoMedia || mediaAvailable(q))) : []; }
+function allForCat() { return BASE ? BASE.q.filter(hasCat) : []; }
+async function mediaURL(q) {
+  if (!q.m) return null;
+  if (BASE.meta && BASE.meta.media) return { url: 'data/' + BASE.meta.media + encodeURIComponent(q.m), kind: mediaKind(q) };
+  const key = stemOf(q.m);
+  if (!MEDIA.has(key)) return null;
+  if (urlCache.has(key)) return urlCache.get(key);
+  const rec = await DB.get('media', key);
+  if (!rec) return null;
+  const blob = rec instanceof Blob ? rec : new Blob([rec.b], { type: rec.t || '' });
+  const name = rec.n || q.m;
+  const kind = VID_EXT.test(name) || /^video\//.test(blob.type) ? 'vid' : 'img';
+  const out = { url: URL.createObjectURL(blob), kind, wmv: /\.wmv$/i.test(name) || /wmv/i.test(blob.type) };
+  urlCache.set(key, out);
+  return out;
+}
+
+/* ---------- postęp ---------- */
+function stOf(id) { const p = S.prog[id]; if (!p) return 'new'; if (p.s >= 2) return 'ok'; if (p.l === 0) return 'bad'; return 'mid'; }
+function mark(id, ok) {
+  const p = S.prog[id] || { c: 0, w: 0, s: 0 };
+  if (ok) { p.c++; p.s++; } else { p.w++; p.s = 0; }
+  p.l = ok ? 1 : 0; p.t = Date.now();
+  S.prog[id] = p;
+  const d = today(); S.days[d] = (S.days[d] || 0) + 1;
+  save();
+}
+function counts(list) { const c = { new: 0, mid: 0, bad: 0, ok: 0 }; for (const q of list) c[stOf(q.id)]++; return c; }
+function streak() {
+  let n = 0; const d = new Date();
+  if (!S.days[today(d)]) d.setDate(d.getDate() - 1);
+  while (S.days[today(d)]) { n++; d.setDate(d.getDate() - 1); }
+  return n;
+}
+const isFav = (id) => !!S.fav[id];
+function toggleFav(id) { if (S.fav[id]) delete S.fav[id]; else S.fav[id] = 1; save(); }
+
+/* ---------- UI: pomocnicze ---------- */
+let toastT;
+function toast(msg) { const t = $('#toast'); t.textContent = msg; t.classList.add('on'); clearTimeout(toastT); toastT = setTimeout(() => t.classList.remove('on'), 2600); }
+function plural(n, a, b, c) { const n10 = n % 10, n100 = n % 100; if (n === 1) return a; if (n10 >= 2 && n10 <= 4 && (n100 < 12 || n100 > 14)) return b; return c; }
+function fmtDate(ts) { const d = new Date(ts); return d.toLocaleDateString('pl-PL', { day: 'numeric', month: 'short' }) + ', ' + d.toLocaleTimeString('pl-PL', { hour: '2-digit', minute: '2-digit' }); }
+function shuffle(a) { for (let i = a.length - 1; i > 0; i--) { const j = Math.floor(Math.random() * (i + 1)); [a[i], a[j]] = [a[j], a[i]]; } return a; }
+function ring(pct, parts) {
+  const r = 42, C = 2 * Math.PI * r; let off = 0, segs = '';
+  for (const [v, col] of parts) { const len = C * v; if (len > 0) segs += `<circle cx="50" cy="50" r="${r}" fill="none" stroke="${col}" stroke-width="10" stroke-dasharray="${len} ${C - len}" stroke-dashoffset="${-off}"/>`; off += len; }
+  return `<div class="ring"><svg viewBox="0 0 100 100"><circle cx="50" cy="50" r="${r}" fill="none" stroke="#1f2329" stroke-width="10"/>${segs}</svg><div class="v">${pct}%<small>opanowane</small></div></div>`;
+}
+function stackBar(c, total) {
+  if (!total) return '<div class="bar"></div>';
+  const w = (n) => (100 * n / total).toFixed(2) + '%';
+  return `<div class="bar"><i style="width:${w(c.ok)};background:var(--ok)"></i><i style="width:${w(c.mid)};background:var(--warn)"></i><i style="width:${w(c.bad)};background:var(--bad)"></i></div>`;
+}
+function partLabel(s) { return s === 'S' ? 'Specjalistyczne' : 'Podstawowe'; }
+function baseName() { return BASE ? (BASE.info.nazwa || BASE.meta.nazwa || 'Baza') : '…'; }
+function isOfficial() { return !!(BASE && (BASE.info.oficjalna || BASE.meta.oficjalna)); }
+function officialAvailable() { return MAN.bazy.some((b) => b.oficjalna); }
+const isStandalone = () => window.navigator.standalone === true || (window.matchMedia && matchMedia('(display-mode: standalone)').matches);
+
+/* ---------- widoki ---------- */
+function render() {
+  $('#catChip').innerHTML = `Kat. <b>${esc(S.cat)}</b>`;
+  $$('#tabbar button').forEach((b) => b.classList.toggle('on', b.dataset.tab === tab));
+  const v = $('#view');
+  if (!BASE) { v.innerHTML = '<div class="empty">Wczytywanie bazy pytań…</div>'; return; }
+  const titles = { start: 'Prawko', nauka: 'Nauka', egzamin: 'Egzamin', przepisy: 'Przepisy', wiecej: 'Więcej' };
+  $('#ttl').textContent = titles[tab];
+  v.innerHTML = tab === 'start' ? vStart() : tab === 'nauka' ? vLearn() : tab === 'egzamin' ? vExam() : tab === 'przepisy' ? vRules() : vMore();
+  if (tab === 'przepisy' && ruleOpen && ruleQuery) highlight($('#artbody'), ruleQuery, true);
+}
+
+function vStart() {
+  const all = pool(), c = counts(all), n = all.length || 1;
+  const pct = Math.round(100 * c.ok / n);
+  const favN = all.filter((q) => isFav(q.id)).length;
+  const posKey = learnKey({ part: 'all', ch: '', med: 'all' });
+  const pos = Math.min(S.pos[posKey] || 0, all.length);
+  const ex = S.exams.slice(-3).reverse();
+  const tdy = S.days[today()] || 0, stk = streak();
+  let h = '';
+  if (!isStandalone() && !S.hideInstall && /iphone|ipad|ipod/i.test(navigator.userAgent)) {
+    h += `<div class="note"><div><b>Zainstaluj na iPhonie.</b> Stuknij „Udostępnij”, potem „Do ekranu początkowego”. Aplikacja działa wtedy na pełnym ekranie, także bez internetu.</div><button class="x" data-a="hide-install" aria-label="Zamknij">×</button></div>`;
+  }
+  h += `<div class="hero">${ring(pct, [[c.ok / n, '#4ade80'], [c.mid / n, '#fbbf24'], [c.bad / n, '#ff6b6b']])}<div class="grow"><div class="big">${c.ok} z ${all.length}</div><div class="mut small">pytań opanowanych · ${esc(baseName())}</div>
+  <div class="legend"><span><i style="background:var(--ok)"></i>opanowane ${c.ok}</span><span><i style="background:var(--warn)"></i>w nauce ${c.mid}</span><span><i style="background:var(--bad)"></i>do powtórki ${c.bad}</span><span><i style="background:var(--faint)"></i>nowe ${c.new}</span></div></div></div>`;
+  h += `<div class="grid2">
+   <button class="act main" data-a="learn-continue"><span class="e">▶</span><span><b>Ucz się dalej</b><br><small>Po kolei · pytanie ${Math.min(pos + 1, all.length)} z ${all.length}</small></span></button>
+   <button class="act" data-a="exam-start"><span class="e">📝</span><b>Egzamin próbny</b><small>32 pytania, czas jak na egzaminie</small></button>
+   <button class="act" data-a="learn-quick" data-m="losowo"><span class="e">🎲</span><b>Losowe 30</b><small>szybka sesja</small></button>
+   <button class="act" data-a="learn-quick" data-m="bledne"><span class="e">🔁</span><b>Do powtórki</b><small>${c.bad} ${plural(c.bad, 'pytanie', 'pytania', 'pytań')}</small></button>
+   <button class="act" data-a="learn-quick" data-m="ulubione"><span class="e">★</span><b>Ulubione</b><small>${favN} ${plural(favN, 'pytanie', 'pytania', 'pytań')}</small></button>
+  </div>`;
+  h += `<div class="card"><div class="row sb"><div><b>Dziś: ${tdy} ${plural(tdy, 'odpowiedź', 'odpowiedzi', 'odpowiedzi')}</b><div class="mut small">Seria nauki: ${stk} ${plural(stk, 'dzień', 'dni', 'dni')} z rzędu</div></div><span style="font-size:28px">${stk >= 3 ? '🔥' : '📅'}</span></div></div>`;
+  if (!officialAvailable()) {
+    h += `<div class="note warn"><div><p><b>Oficjalna baza pytań egzaminacyjnych</b></p><p>Teraz uczysz się z ${BASE.q.length} pytań autorskich z objaśnieniami. Pełną bazę Ministerstwa Infrastruktury (ponad 3000 pytań, ze zdjęciami i filmami) pobierz z gov.pl i zaimportuj w zakładce Więcej.</p><p><button class="btn sm" data-a="go-more-base">Jak dodać oficjalną bazę</button></p></div></div>`;
+  } else if (isOfficial() && !(BASE.meta && BASE.meta.media) && BASE.q.some((q) => q.m && hasCat(q)) && !BASE.q.some((q) => q.m && MEDIA.has(stemOf(q.m)))) {
+    h += `<div class="note warn"><div><p><b>Brak zdjęć i filmów.</b> Pytania podstawowe wymagają multimediów. Zaimportuj je w Więcej → Baza pytań, a do tego czasu pytania bez multimediów są ukryte.</p></div></div>`;
+  }
+  if (ex.length) {
+    h += `<h2>Ostatnie egzaminy</h2><div class="list">` + ex.map((e) => examRow(e)).join('') + `</div>`;
+  }
+  h += `<h2>Przepisy w pigułce</h2><div class="list">` + ['pierwszenstwo', 'predkosc', 'wyprzedzanie', 'piesi'].map((id) => ruleRow(CH[id])).join('') + `</div>`;
+  return h;
+}
+function examRow(e) {
+  return `<button class="li" data-a="exam-review" data-i="${S.exams.indexOf(e)}"><span class="e">${e.pass ? '✅' : '❌'}</span><span class="grow"><b>${e.score} / ${e.max} pkt — ${e.pass ? 'zdany' : 'niezdany'}</b><small>${fmtDate(e.ts)} · ${esc(e.baseName || '')} · kat. ${esc(e.cat)}</small></span><span class="r">›</span></button>`;
+}
+
+function learnKey(f) { return [BASE.id, S.cat, f.part, BASE.hasCh ? f.ch || '' : '', BASE.hasMedia ? f.med || 'all' : 'all'].join('|'); }
+function filtered(f) {
+  const ch = BASE.hasCh ? f.ch : '', med = BASE.hasMedia ? f.med : 'all';
+  return pool().filter((q) => (f.part === 'all' || q.s === f.part) && (!ch || q.ch === ch) &&
+    (med === 'all' || (med === 'img' && mediaKind(q) === 'img') || (med === 'vid' && mediaKind(q) === 'vid') || (med === 'none' && !q.m)));
+}
+function modeList(f, mode) {
+  const base = filtered(f);
+  switch (mode) {
+    case 'kolejno': return base;
+    case 'losowo': return shuffle(base.slice()).slice(0, 30);
+    case 'nowe': return shuffle(base.filter((q) => stOf(q.id) === 'new'));
+    case 'bledne': return shuffle(base.filter((q) => stOf(q.id) === 'bad'));
+    case 'nieopanowane': return shuffle(base.filter((q) => stOf(q.id) !== 'ok'));
+    case 'ulubione': return base.filter((q) => isFav(q.id));
+  }
+  return base;
+}
+function vLearn() {
+  const f = S.lf, base = filtered(f), c = counts(base);
+  const favN = base.filter((q) => isFav(q.id)).length;
+  const pos = Math.min(S.pos[learnKey(f)] || 0, base.length);
+  const modes = [
+    ['kolejno', '➡️', 'Po kolei', `kontynuuj od pytania ${Math.min(pos + 1, base.length)}`, base.length],
+    ['losowo', '🎲', 'Losowo', '30 losowych pytań', Math.min(30, base.length)],
+    ['nowe', '🆕', 'Nowe', 'jeszcze bez odpowiedzi', c.new],
+    ['bledne', '🔁', 'Do powtórki', 'ostatnia odpowiedź błędna', c.bad],
+    ['nieopanowane', '🎯', 'Nieopanowane', 'mniej niż 2 dobre odpowiedzi z rzędu', base.length - c.ok],
+    ['ulubione', '★', 'Ulubione', 'oznaczone gwiazdką', favN]
+  ];
+  const n = modes.find((m) => m[0] === f.mode)[4];
+  let h = `<div class="seg" role="tablist">${[['all', 'Wszystkie'], ['P', 'TAK / NIE'], ['S', 'A / B / C']].map(([v, l]) => `<button class="${f.part === v ? 'on' : ''}" data-a="lf" data-k="part" data-v="${v}">${l}</button>`).join('')}</div>`;
+  if (BASE.hasCh) {
+    const opts = Object.values(CH).filter((ch) => pool().some((q) => q.ch === ch.id));
+    h += `<select class="sel" data-a="lf-ch" aria-label="Temat"><option value="">Wszystkie tematy</option>${opts.map((ch) => `<option value="${ch.id}" ${f.ch === ch.id ? 'selected' : ''}>${ch.icon} ${esc(ch.title)}</option>`).join('')}</select>`;
+  }
+  if (BASE.hasMedia) {
+    h += `<div class="seg">${[['all', 'Wszystkie'], ['img', 'Zdjęcia'], ['vid', 'Filmy'], ['none', 'Bez mediów']].map(([v, l]) => `<button class="${f.med === v ? 'on' : ''}" data-a="lf" data-k="med" data-v="${v}">${l}</button>`).join('')}</div>`;
+  }
+  h += `<div class="opts">${modes.map(([id, e, t, s, cnt]) => `<button class="opt ${f.mode === id ? 'on' : ''}" data-a="lf" data-k="mode" data-v="${id}"><span class="e">${e}</span><span><b>${t}</b><small>${s}</small></span><span class="n">${cnt}</span></button>`).join('')}</div>`;
+  h += `<button class="btn pri block" data-a="learn-go" ${n ? '' : 'disabled'}>Rozpocznij · ${n} ${plural(n, 'pytanie', 'pytania', 'pytań')}</button>`;
+  h += `<div class="card" style="margin-top:12px"><div class="row sb"><b>Postęp w wybranym zakresie</b><span class="mut small">${base.length} ${plural(base.length, 'pytanie', 'pytania', 'pytań')}</span></div>${stackBar(c, base.length)}<div class="legend"><span><i style="background:var(--ok)"></i>${c.ok}</span><span><i style="background:var(--warn)"></i>${c.mid}</span><span><i style="background:var(--bad)"></i>${c.bad}</span><span><i style="background:var(--faint)"></i>${c.new}</span></div></div>`;
+  h += `<h2>Szukaj pytania</h2><label class="search"><svg class="i" viewBox="0 0 24 24"><circle cx="11" cy="11" r="7"/><path d="M20 20l-4-4"/></svg><input type="search" id="qsearch" placeholder="Treść pytania lub numer" value="${esc(searchQ)}" autocomplete="off"></label><div id="qres">${searchResults()}</div>`;
+  return h;
+}
+function searchResults() {
+  const t = foldLow(searchQ.trim());
+  if (t.length < 2) return '';
+  const res = allForCat().filter((q) => String(q.id).toLowerCase() === t || foldLow(q.t).includes(t)).slice(0, 40);
+  if (!res.length) return '<div class="empty">Nic nie znaleziono.</div>';
+  return `<div class="list">${res.map((q) => `<button class="li" data-a="open-q" data-id="${esc(q.id)}"><span class="dot st-${stOf(q.id)}"></span><span class="grow"><b style="font-weight:550">${esc(q.t)}</b><small>nr ${esc(q.id)} · ${partLabel(q.s)} · ${q.p} pkt${q.m ? (mediaKind(q) === 'vid' ? ' · 🎬' : ' · 📷') : ''}</small></span></button>`).join('')}</div>`;
+}
+
+function vExam() {
+  const p = pool();
+  const nP = p.filter((q) => q.s === 'P').length, nS = p.filter((q) => q.s === 'S').length;
+  let h = `<div class="card"><b>Egzamin próbny – jak na prawdziwym egzaminie</b>
+  <ul class="small" style="margin:8px 0 0;padding-left:18px;color:#cfd5de">
+  <li>32 pytania: 20 TAK/NIE (część podstawowa) i 12 A/B/C (część specjalistyczna)</li>
+  <li>Część podstawowa: 20 s na zapoznanie się z pytaniem, potem zdjęcie lub film i 15 s na odpowiedź</li>
+  <li>Część specjalistyczna: 50 s na pytanie</li>
+  <li>Maksymalnie 74 pkt, egzamin zdajesz od 68 pkt. Bez powrotu do poprzednich pytań.</li></ul></div>`;
+  if (nP < 20 || nS < 12) h += `<div class="note warn"><div>W wybranej bazie i kategorii jest za mało pytań (${nP} TAK/NIE, ${nS} A/B/C), żeby ułożyć pełny egzamin. Egzamin zostanie skrócony.</div></div>`;
+  if (!isOfficial()) h += `<div class="note"><div>Egzamin próbny składa się teraz z <b>pytań autorskich</b>. Po dodaniu oficjalnej bazy (Więcej → Baza pytań) będzie losowany z pytań egzaminacyjnych.</div></div>`;
+  h += `<button class="btn pri block" data-a="exam-start" ${nP + nS ? '' : 'disabled'}>Rozpocznij egzamin</button>`;
+  if (S.exams.length) {
+    const passed = S.exams.filter((e) => e.pass).length;
+    const avg = Math.round(S.exams.reduce((a, e) => a + e.score / e.max * 74, 0) / S.exams.length);
+    h += `<div class="kv" style="margin-top:14px"><div><b>${S.exams.length}</b><small>egzaminów</small></div><div><b>${passed}</b><small>zdanych</small></div><div><b>${avg}</b><small>średnio pkt</small></div></div>`;
+    h += `<h2>Historia</h2><div class="list">${S.exams.slice().reverse().map(examRow).join('')}</div>`;
+    h += `<p class="center"><button class="btn sm danger" data-a="exams-clear">Wyczyść historię egzaminów</button></p>`;
+  }
+  return h;
+}
+
+function ruleRow(ch, snippet) {
+  if (!ch) return '';
+  return `<button class="li" data-a="rule" data-id="${ch.id}"><span class="e">${ch.icon}</span><span class="grow"><b>${esc(ch.title)}</b><small>${esc(ch.sub)}</small>${snippet ? `<div class="snip">${snippet}</div>` : ''}</span><span class="r">›</span></button>`;
+}
+const textCache = new Map();
+function plainText(ch) { if (!textCache.has(ch.id)) { const d = document.createElement('div'); d.innerHTML = ch.html; textCache.set(ch.id, (d.textContent || '').replace(/\s+/g, ' ')); } return textCache.get(ch.id); }
+function vRules() {
+  if (ruleOpen && CH[ruleOpen]) return ruleArticle(CH[ruleOpen], false);
+  let h = `<label class="search"><svg class="i" viewBox="0 0 24 24"><circle cx="11" cy="11" r="7"/><path d="M20 20l-4-4"/></svg><input type="search" id="rsearch" placeholder="Szukaj w przepisach, np. trójkąt, rondo" value="${esc(ruleQuery)}" autocomplete="off"></label><div id="rres">${rulesList()}</div>`;
+  return h;
+}
+function rulesList() {
+  const t = foldLow(ruleQuery.trim());
+  const chs = window.PRZEPISY || [];
+  if (t.length < 2) return `<div class="list">${chs.map((c) => ruleRow(c)).join('')}</div><p class="mut small center" style="margin-top:14px">Opracowanie edukacyjne na podstawie ustawy Prawo o ruchu drogowym i przepisów wykonawczych. Wiążący jest zawsze aktualny tekst ustaw.</p>`;
+  const hits = [];
+  for (const c of chs) {
+    const txt = plainText(c), f = foldLow(txt);
+    let idx = f.indexOf(t), n = 0, first = idx;
+    while (idx >= 0) { n++; idx = f.indexOf(t, idx + t.length); }
+    if (foldLow(c.title).includes(t) && first < 0) first = 0;
+    if (n || foldLow(c.title).includes(t)) {
+      const a = Math.max(0, first - 50), b = Math.min(txt.length, first + t.length + 70);
+      const sn = (a ? '…' : '') + esc(txt.slice(a, first)) + '<mark>' + esc(txt.slice(first, first + t.length)) + '</mark>' + esc(txt.slice(first + t.length, b)) + (b < txt.length ? '…' : '');
+      hits.push([n, c, sn]);
+    }
+  }
+  hits.sort((x, y) => y[0] - x[0]);
+  return hits.length ? `<div class="list">${hits.map(([n, c, sn]) => ruleRow(c, `${n ? n + ' ' + plural(n, 'wynik', 'wyniki', 'wyników') + ' · ' : ''}${sn}`)).join('')}</div>` : '<div class="empty">Brak wyników.</div>';
+}
+function ruleArticle(ch, inOverlay) {
+  const list = window.PRZEPISY, i = list.indexOf(ch);
+  const qn = BASE && BASE.hasCh ? pool().filter((q) => q.ch === ch.id).length : 0;
+  let h = '';
+  if (!inOverlay) h += `<p style="margin:6px 0 0"><button class="btn sm" data-a="rule-back">‹ Wszystkie rozdziały</button></p>`;
+  h += `<div class="art-head"><span class="e">${ch.icon}</span><h2>${esc(ch.title)}</h2></div><div class="art" id="artbody">${ch.html}</div>`;
+  if (qn) h += `<button class="btn pri block" data-a="learn-ch" data-id="${ch.id}" style="margin-top:8px">Pytania z tego rozdziału · ${qn}</button>`;
+  if (!inOverlay) h += `<div class="btns" style="margin-top:12px">${i > 0 ? `<button class="btn sm" data-a="rule" data-id="${list[i - 1].id}">‹ ${esc(list[i - 1].title)}</button>` : ''}${i < list.length - 1 ? `<button class="btn sm" data-a="rule" data-id="${list[i + 1].id}">${esc(list[i + 1].title)} ›</button>` : ''}</div>`;
+  return h;
+}
+function highlight(root, term, scroll) {
+  if (!root) return;
+  const t = foldLow(term.trim()); if (t.length < 2) return;
+  const walker = document.createTreeWalker(root, NodeFilter.SHOW_TEXT, { acceptNode: (n) => n.parentNode.closest('svg') ? NodeFilter.FILTER_REJECT : NodeFilter.FILTER_ACCEPT });
+  const nodes = []; while (walker.nextNode()) nodes.push(walker.currentNode);
+  let first = null;
+  for (const node of nodes) {
+    const txt = node.nodeValue, f = foldLow(txt);
+    let idx = f.indexOf(t); if (idx < 0) continue;
+    const frag = document.createDocumentFragment(); let last = 0;
+    while (idx >= 0) {
+      frag.appendChild(document.createTextNode(txt.slice(last, idx)));
+      const m = document.createElement('mark'); m.textContent = txt.slice(idx, idx + t.length); frag.appendChild(m);
+      if (!first) first = m;
+      last = idx + t.length; idx = f.indexOf(t, last);
+    }
+    frag.appendChild(document.createTextNode(txt.slice(last)));
+    node.parentNode.replaceChild(frag, node);
+  }
+  if (scroll && first) setTimeout(() => first.scrollIntoView({ block: 'center' }), 50);
+}
+
+function vMore() {
+  const all = pool(), c = counts(all);
+  const answered = Object.keys(S.prog).filter((id) => BASE.byId.has(id) && hasCat(BASE.byId.get(id)));
+  let good = 0, bad = 0; for (const id of answered) { good += S.prog[id].c; bad += S.prog[id].w; }
+  const eff = good + bad ? Math.round(100 * good / (good + bad)) : 0;
+  let h = `<h2 style="margin-top:6px">Statystyki</h2><div class="card"><div class="kv"><div><b>${answered.length}</b><small>przerobionych</small></div><div><b>${c.ok}</b><small>opanowanych</small></div><div><b>${eff}%</b><small>skuteczność</small></div></div>${stackBar(c, all.length)}<div class="legend"><span><i style="background:var(--ok)"></i>opanowane ${c.ok}</span><span><i style="background:var(--warn)"></i>w nauce ${c.mid}</span><span><i style="background:var(--bad)"></i>do powtórki ${c.bad}</span><span><i style="background:var(--faint)"></i>nowe ${c.new}</span></div>`;
+  for (const part of ['P', 'S']) {
+    const l = all.filter((q) => q.s === part), cc = counts(l);
+    if (l.length) h += `<div style="margin-top:12px"><div class="row sb small"><span>${part === 'P' ? 'Podstawowe (TAK/NIE)' : 'Specjalistyczne (A/B/C)'}</span><span class="mut">${cc.ok}/${l.length}</span></div>${stackBar(cc, l.length)}</div>`;
+  }
+  const days = []; const d = new Date(); d.setDate(d.getDate() - 13);
+  for (let i = 0; i < 14; i++) { days.push(S.days[today(d)] || 0); d.setDate(d.getDate() + 1); }
+  const mx = Math.max(1, ...days);
+  h += `<div style="margin-top:14px" class="row sb small"><span>Aktywność – 14 dni</span><span class="mut">seria: ${streak()} ${plural(streak(), 'dzień', 'dni', 'dni')}</span></div><div class="days">${days.map((n) => `<i class="${n ? '' : 'z'}" style="height:${Math.max(4, 100 * n / mx)}%" title="${n}"></i>`).join('')}</div></div>`;
+  if (BASE.hasCh) {
+    h += `<div class="card"><b>Postęp według tematów</b>`;
+    for (const ch of Object.values(CH)) {
+      const l = all.filter((q) => q.ch === ch.id); if (!l.length) continue;
+      const cc = counts(l);
+      h += `<div style="margin-top:10px"><div class="row sb small"><span>${ch.icon} ${esc(ch.title)}</span><span class="mut">${cc.ok}/${l.length}</span></div>${stackBar(cc, l.length)}</div>`;
+    }
+    h += `</div>`;
+  }
+  h += `<h2 id="sec-base">Kategoria prawa jazdy</h2><div class="card"><div class="cats">${CATS.map((k) => `<button class="${S.cat === k ? 'on' : ''}" data-a="cat" data-v="${k}">${k}</button>`).join('')}</div><p class="mut small" style="margin:10px 0 0">Kategoria wybiera pytania z oficjalnej bazy. Pytania autorskie dotyczą kategorii B.</p></div>`;
+  h += `<h2>Baza pytań</h2><div class="list">${MAN.bazy.map((b) => `<button class="opt ${BASE.id === b.id ? 'on' : ''}" data-a="base" data-v="${esc(b.id)}"><span class="e">${b.oficjalna ? '🏛️' : '📗'}</span><span><b>${esc(b.nazwa)}</b><small>${b.liczba ? b.liczba + ' pytań' : ''}${b.wersja ? ' · wersja: ' + esc(b.wersja) : ''}${b.id === BASE.id ? ' · aktywna' : ''}</small></span></button>`).join('')}</div>`;
+  const mediaN = MEDIA.size;
+  h += `<div class="card" style="margin-top:12px"><b>Dodaj oficjalną bazę pytań</b>
+   <ol class="small" style="margin:8px 0 10px;padding-left:20px;color:#cfd5de">
+   <li>Na gov.pl otwórz stronę Ministerstwa Infrastruktury <i>Prawo jazdy</i> i pobierz aktualny plik <b>bazy pytań egzaminacyjnych (.xlsx)</b>.</li>
+   <li>Stuknij <b>Importuj plik bazy</b> i wybierz pobrany plik, np. z aplikacji Pliki.</li>
+   <li>Opcjonalnie dodaj <b>zdjęcia i filmy</b>. Rozpakuj paczkę multimediów z gov.pl i zaznacz pliki. Formatu WMV Safari nie odtwarza, więc potrzebne są pliki MP4.</li></ol>
+   <div class="btns"><button class="btn sm pri" data-a="imp-base">Importuj plik bazy</button><button class="btn sm" data-a="imp-media">Importuj multimedia</button></div>
+   <p class="mut small" style="margin:10px 0 0">W telefonie: ${MAN.bazy.some((b) => b.import) ? 'zaimportowana baza ✓' : 'brak zaimportowanej bazy'} · multimedia: ${mediaN} ${plural(mediaN, 'plik', 'pliki', 'plików')}</p>
+   <div class="prog" id="impProg"></div>
+   ${MAN.bazy.some((b) => b.import) || mediaN ? `<div class="btns" style="margin-top:10px">${MAN.bazy.some((b) => b.import) ? '<button class="btn sm danger" data-a="del-import">Usuń zaimportowaną bazę</button>' : ''}${mediaN ? '<button class="btn sm danger" data-a="del-media">Usuń multimedia</button>' : ''}</div>` : ''}</div>`;
+  h += `<h2>Ustawienia</h2><div class="card">
+   <label class="setrow"><span>Dalej po poprawnej odpowiedzi<small>W nauce przechodź automatycznie do następnego pytania</small></span><span class="sw"><input type="checkbox" data-a="set" data-k="autoNext" ${S.set.autoNext ? 'checked' : ''}><span></span></span></label>
+   <label class="setrow"><span>Ukrywaj pytania bez multimediów<small>Gdy zdjęcie lub film nie jest dostępny w telefonie</small></span><span class="sw"><input type="checkbox" data-a="set" data-k="hideNoMedia" ${S.set.hideNoMedia ? 'checked' : ''}><span></span></span></label></div>`;
+  h += `<h2>Kopia zapasowa</h2><div class="card"><p class="mut small" style="margin:0 0 10px">Postęp jest zapisany tylko na tym urządzeniu. Zrób kopię, żeby przenieść go na inny telefon.</p><div class="btns"><button class="btn sm" data-a="backup-export">Eksportuj postęp</button><button class="btn sm" data-a="backup-import">Wczytaj kopię</button></div><div class="btns" style="margin-top:10px"><button class="btn sm danger" data-a="reset">Wyzeruj postęp nauki</button></div></div>`;
+  h += `<h2>O aplikacji</h2><div class="card small" style="color:#cfd5de"><p style="margin:0 0 8px">Aplikacja do nauki teorii na prawo jazdy: nauka z objaśnieniami, egzamin próbny z czasem i punktacją jak na egzaminie państwowym oraz opracowanie przepisów ruchu drogowego.</p><p style="margin:0 0 8px">Oficjalną bazę pytań egzaminacyjnych publikuje Ministerstwo Infrastruktury (gov.pl). Pytania autorskie nie pochodzą z bazy egzaminacyjnej. Służą do nauki przepisów.</p><p style="margin:0" class="mut">Opracowanie przepisów ma charakter edukacyjny. Wiążący jest aktualny tekst ustaw (isap.sejm.gov.pl).</p></div>`;
+  return h;
+}
+
+/* ---------- sesja nauki ---------- */
+function startLearn(list, opts = {}) {
+  if (!list.length) { toast('Brak pytań w tym zakresie'); return; }
+  X = { mode: 'learn', items: list, i: opts.start || 0, done: [], sel: null, answered: false, posKey: opts.posKey || null, title: opts.title || 'Nauka' };
+  openSess();
+}
+function openSess() { document.body.classList.add('lock'); $('#sess').hidden = false; renderSess(); }
+function closeSess() {
+  stopTimer();
+  const v = $('#sess video'); if (v) v.pause();
+  $('#sess').hidden = true; $('#sess').innerHTML = ''; X = null; document.body.classList.remove('lock');
+  render();
+}
+function curQ() { return X && X.items[X.i]; }
+function ansButtons(q, state) {
+  // state: { sel, reveal, disabled }
+  const cls = (val) => {
+    const c = [];
+    if (state.reveal) { if (val === q.k) c.push('good'); else if (val === state.sel) c.push('wrong'); }
+    else if (val === state.sel) c.push('sel');
+    return c.join(' ');
+  };
+  const dis = state.disabled ? 'disabled' : '';
+  if (q.s === 'P') return `<div class="ans tn"><button class="${cls('T')}" data-a="ans" data-v="T" ${dis}>TAK</button><button class="${cls('N')}" data-a="ans" data-v="N" ${dis}>NIE</button></div>`;
+  return `<div class="ans">${['A', 'B', 'C'].map((L, i) => `<button class="${cls(L)}" data-a="ans" data-v="${L}" ${dis}><span class="l">${L}</span><span>${esc((q.a || [])[i] || '')}</span></button>`).join('')}</div>`;
+}
+function ansLabel(q, v) { if (v == null) return 'brak odpowiedzi'; if (q.s === 'P') return v === 'T' ? 'TAK' : 'NIE'; const i = 'ABC'.indexOf(v); return v + ') ' + ((q.a || [])[i] || ''); }
+function explain(q, ok, sel) {
+  let h = `<div class="fb ${ok ? 'good' : 'wrong'}"><h4>${ok ? '✓ Dobrze!' : sel == null ? '✗ Brak odpowiedzi' : '✗ Źle'}</h4>`;
+  if (!ok) h += `<div>Prawidłowa odpowiedź: <b>${esc(ansLabel(q, q.k))}</b></div>`;
+  if (q.ex) h += `<p>${esc(q.ex)}</p>`;
+  if (q.why) h += `<span class="lbl">O co chodzi w pytaniu</span><div>${esc(q.why)}</div>`;
+  if (q.safe) h += `<span class="lbl">Związek z bezpieczeństwem</span><div>${esc(q.safe)}</div>`;
+  if (q.src) h += `<span class="lbl">Podstawa prawna</span><div>${esc(q.src)}</div>`;
+  if (q.ch && CH[q.ch]) h += `<button class="lnk" data-a="rule-ov" data-id="${q.ch}">📘 Przepisy: ${esc(CH[q.ch].title)} ›</button>`;
+  return h + '</div>';
+}
+function mediaBox(q, mode) {
+  if (!q.m) return '';
+  if (!mediaAvailable(q)) return `<div class="media"><div class="ph"><b>${mediaKind(q) === 'vid' ? '🎬 Film' : '📷 Zdjęcie'} niedostępne</b>Plik „${esc(q.m)}” nie jest zapisany w telefonie. Zaimportuj multimedia w Więcej → Baza pytań.</div></div>`;
+  const hide = mode === 'exam-read';
+  return `<div class="media" id="mbox" data-mode="${mode}">${hide ? `<button class="startb" data-a="exam-startmedia"><span>START</span>${mediaKind(q) === 'vid' ? 'Film odtworzy się jeden raz' : 'Pokaż zdjęcie'}</button>` : '<div class="ph">Wczytywanie…</div>'}</div>`;
+}
+async function fillMedia(q, mode) {
+  const box = $('#mbox'); if (!box || !q.m || mode === 'exam-read') return;
+  const m = await mediaURL(q);
+  if (curQ() !== q || !$('#mbox')) return;
+  if (!m) { box.innerHTML = '<div class="ph"><b>Nie udało się wczytać pliku</b></div>'; if (mode === 'exam-media') examAnswerPhase(); return; }
+  if (m.kind === 'vid') {
+    if (m.wmv && !document.createElement('video').canPlayType('video/x-ms-wmv')) {
+      box.innerHTML = '<div class="ph"><b>Format WMV nie jest obsługiwany</b>Zaimportuj filmy w formacie MP4 (np. przekonwertowane skryptem tools/import_baza.py).</div>';
+      if (mode === 'exam-media') examAnswerPhase();
+      return;
+    }
+    const exam = mode === 'exam-media';
+    box.innerHTML = `<video src="${m.url}" playsinline muted autoplay ${exam ? '' : 'controls'} preload="auto"></video>${exam ? '' : '<button class="replay" data-a="replay">↻ Od początku</button>'}`;
+    const v = box.querySelector('video');
+    if (exam) {
+      const fin = () => { if (X && X.mode === 'exam' && X.phase === 'media' && curQ() === q) examAnswerPhase(); };
+      v.addEventListener('ended', fin); v.addEventListener('error', fin);
+      X.mediaGuard = setTimeout(fin, 60000);
+    }
+    const p = v.play(); if (p && p.catch) p.catch(() => {});
+  } else {
+    box.innerHTML = `<img src="${m.url}" alt="Ilustracja do pytania">`;
+    if (mode === 'exam-media') examAnswerPhase();
+  }
+}
+function renderSess() {
+  const el = $('#sess');
+  if (!X) return;
+  if (X.mode === 'learn') return renderLearnSess(el);
+  return renderExamSess(el);
+}
+function renderLearnSess(el) {
+  if (X.i >= X.items.length) return renderLearnEnd(el);
+  const q = curQ(), fav = isFav(q.id);
+  const meta = `<div><span class="tag acc">${partLabel(q.s)}</span><span class="tag">${q.p} pkt</span><span class="tag">nr ${esc(q.id)}</span>${q.ch && CH[q.ch] ? `<span class="tag">${CH[q.ch].icon} ${esc(CH[q.ch].title)}</span>` : ''}</div>`;
+  const ok = X.answered && X.sel === q.k;
+  el.innerHTML = `<div class="ov-top"><button class="ibtn" data-a="s-close" aria-label="Zamknij">✕</button><div class="ttl">${esc(X.title)}<small>${X.i + 1} z ${X.items.length} · ✓ ${X.done.filter((d) => d.ok).length} ✗ ${X.done.filter((d) => !d.ok).length}</small></div><button class="ibtn ${fav ? 'on' : ''}" data-a="fav" aria-label="Ulubione">${fav ? '★' : '☆'}</button></div>
+  <div class="pbar"><i style="width:${100 * X.i / X.items.length}%"></i></div>
+  <div class="ov-body" id="sbody"><div>${meta}${mediaBox(q, 'learn')}<p class="qtext">${esc(q.t)}</p>${ansButtons(q, { sel: X.sel, reveal: X.answered, disabled: X.answered })}${X.answered ? explain(q, ok, X.sel) : ''}</div></div>
+  <div class="ov-foot"><div>${X.answered ? `<button class="btn pri" data-a="next">${X.i + 1 < X.items.length ? 'Dalej →' : 'Zakończ'}</button>` : `<button class="btn" data-a="skip">Pomiń</button>`}</div></div>`;
+  fillMedia(q, 'learn');
+}
+function renderLearnEnd(el) {
+  const good = X.done.filter((d) => d.ok).length, bad = X.done.length - good;
+  el.innerHTML = `<div class="ov-top"><button class="ibtn" data-a="s-close" aria-label="Zamknij">✕</button><div class="ttl">${esc(X.title)}<small>koniec sesji</small></div><span style="width:40px"></span></div>
+  <div class="ov-body"><div><div class="res"><div style="font-size:48px">${bad === 0 && good ? '🏆' : '📊'}</div><div class="sc">${good}<small> / ${X.done.length}</small></div><p class="mut">poprawnych odpowiedzi</p></div>
+  ${X.done.length ? `<div class="card">${X.done.map((d) => { const q = BASE.byId.get(String(d.id)); return q ? `<div class="row" style="padding:6px 0;align-items:flex-start"><span class="ic ${d.ok ? 'y' : 'n'}">${d.ok ? '✓' : '✗'}</span><span class="small grow">${esc(q.t)}</span></div>` : ''; }).join('')}</div>` : ''}</div></div>
+  <div class="ov-foot"><div>${bad ? `<button class="btn" data-a="redo-wrong">Powtórz błędne (${bad})</button>` : ''}<button class="btn pri" data-a="s-close">Gotowe</button></div></div>`;
+}
+function learnAnswer(v) {
+  if (!X || X.answered) return;
+  const q = curQ(); X.sel = v; X.answered = true;
+  const ok = v === q.k;
+  mark(q.id, ok); X.done.push({ id: q.id, ok });
+  if (X.posKey) { S.pos[X.posKey] = (X.items.length ? (X.i + 1) % X.items.length : 0); save(); }
+  renderSess();
+  const fb = $('#sess .fb'); if (fb) fb.scrollIntoView({ block: 'nearest', behavior: 'smooth' });
+  if (ok && S.set.autoNext) { const cur = X; setTimeout(() => { if (X === cur && X.answered && curQ() === q) learnNext(); }, 900); }
+}
+function learnNext() { if (!X) return; X.i++; X.sel = null; X.answered = false; renderSess(); const b = $('#sbody'); if (b) b.scrollTop = 0; }
+
+/* ---------- egzamin ---------- */
+function buildExam() {
+  const p = shuffle(pool().slice());
+  const pick = (part) => {
+    const plan = EXAM_PLAN[part], need = Object.values(plan).reduce((a, b) => a + b, 0);
+    const src = p.filter((q) => q.s === part), out = [], used = new Set();
+    for (const pts of [3, 2, 1]) for (const q of src) { if (out.filter((x) => x.p === pts).length >= plan[pts]) break; if (q.p === pts && !used.has(q.id)) { out.push(q); used.add(q.id); } }
+    for (const q of src) { if (out.length >= need) break; if (!used.has(q.id)) { out.push(q); used.add(q.id); } }
+    return out;
+  };
+  return [...pick('P'), ...pick('S')];
+}
+function startExam() {
+  const items = buildExam();
+  if (!items.length) { toast('Brak pytań do egzaminu'); return; }
+  const max = items.reduce((a, q) => a + q.p, 0);
+  X = { mode: 'exam', items, i: 0, ans: [], sel: null, phase: null, deadline: 0, phaseLen: 0, started: Date.now(), max, title: 'Egzamin próbny' };
+  openSess(); examEnter();
+}
+function examEnter() {
+  const q = curQ(); X.sel = null; clearTimeout(X.mediaGuard);
+  // Pytanie TAK/NIE bez zdjęcia/filmu (np. pytania autorskie): od razu odpowiedź, łącznie 35 s.
+  if (q.s === 'P' && q.m && mediaAvailable(q)) setPhase('read', TIME.read);
+  else setPhase('answer', q.s === 'P' ? TIME.read + TIME.answerP : TIME.answerS);
+  renderSess();
+}
+function setPhase(ph, sec) { X.phase = ph; X.phaseLen = sec; X.deadline = sec ? Date.now() + sec * 1000 : 0; startTimer(); }
+function examStartMedia() {
+  if (!X || X.phase !== 'read') return;
+  const q = curQ();
+  if (q.m && mediaAvailable(q)) { setPhase('media', 0); renderSess(); fillMedia(q, 'exam-media'); }
+  else examAnswerPhase();
+}
+function examAnswerPhase() {
+  if (!X || X.mode !== 'exam' || X.phase === 'answer') return;
+  clearTimeout(X.mediaGuard);
+  const vid = $('#sess video');
+  setPhase('answer', curQ().s === 'P' ? TIME.answerP : TIME.answerS);
+  if (vid) { // nie przerysowujemy filmu – zostaje ostatnia klatka
+    $$('#sess .ans button').forEach((b) => { b.disabled = false; });
+    updateTimer();
+  } else renderSess();
+}
+function startTimer() { stopTimer(); timerInt = setInterval(tick, 200); }
+function stopTimer() { if (timerInt) clearInterval(timerInt); timerInt = null; }
+function tick() {
+  if (!X || X.mode !== 'exam' || X.phase === 'end') return stopTimer();
+  updateTimer();
+  if (X.deadline && Date.now() >= X.deadline) {
+    if (X.phase === 'read') examStartMedia();
+    else if (X.phase === 'answer') examNext();
+  }
+}
+function updateTimer() {
+  const t = $('#etimer'); if (!t) return;
+  const left = X.deadline ? Math.max(0, (X.deadline - Date.now()) / 1000) : 0;
+  const lbl = X.phase === 'read' ? 'Zapoznaj się z pytaniem' : X.phase === 'media' ? 'Odtwarzanie…' : 'Czas na odpowiedź';
+  t.classList.toggle('low', X.phase === 'answer' && left <= 5);
+  t.querySelector('span').textContent = lbl;
+  t.querySelector('i').style.width = (X.deadline ? 100 * left / X.phaseLen : 100) + '%';
+  t.querySelector('b').textContent = X.deadline ? Math.ceil(left) + ' s' : '';
+}
+function renderExamSess(el) {
+  if (X.phase === 'end') return renderExamEnd(el);
+  const q = curQ();
+  const canAnswer = X.phase === 'answer' || (X.phase === 'media');
+  const mode = X.phase === 'read' ? 'exam-read' : X.phase === 'media' ? 'exam-media' : 'learn-exam';
+  el.innerHTML = `<div class="ov-top"><button class="ibtn" data-a="exam-quit" aria-label="Przerwij">✕</button><div class="ttl">Pytanie ${X.i + 1} z ${X.items.length}<small>${partLabel(q.s)} · ${q.p} ${plural(q.p, 'punkt', 'punkty', 'punktów')}</small></div><span style="width:40px"></span></div>
+  <div class="pbar"><i style="width:${100 * X.i / X.items.length}%"></i></div>
+  <div class="ov-body" id="sbody"><div><div class="timer" id="etimer"><span></span><div class="tb"><i></i></div><b></b></div>
+  ${mediaBox(q, mode)}<p class="qtext">${esc(q.t)}</p>${ansButtons(q, { sel: X.sel, reveal: false, disabled: !canAnswer })}</div></div>
+  <div class="ov-foot"><div><button class="btn pri" data-a="exam-next">${X.i + 1 < X.items.length ? 'Następne pytanie' : 'Zakończ egzamin'}</button></div></div>`;
+  updateTimer();
+  if (mode === 'learn-exam') fillMedia(q, mode);
+}
+function examNext() {
+  if (!X || X.mode !== 'exam' || X.phase === 'end') return;
+  const q = curQ(); clearTimeout(X.mediaGuard);
+  const v = $('#sess video'); if (v) v.pause();
+  X.ans.push({ id: q.id, a: X.sel, k: q.k, p: q.p, s: q.s });
+  mark(q.id, X.sel === q.k);
+  X.i++;
+  if (X.i >= X.items.length) return examFinish();
+  examEnter();
+  const b = $('#sbody'); if (b) b.scrollTop = 0;
+}
+function examFinish() {
+  stopTimer();
+  const score = X.ans.reduce((a, r) => a + (r.a === r.k ? r.p : 0), 0);
+  const need = X.max === 74 ? 68 : Math.ceil(X.max * 68 / 74);
+  const rec = { ts: Date.now(), dur: Math.round((Date.now() - X.started) / 1000), score, max: X.max, need, pass: score >= need, cat: S.cat, base: BASE.id, baseName: baseName(), items: X.ans };
+  S.exams.push(rec); if (S.exams.length > 50) S.exams = S.exams.slice(-50); save();
+  X.phase = 'end'; X.result = rec;
+  renderSess();
+}
+function reviewList(rec) {
+  return rec.items.map((r, i) => {
+    const q = BASE && BASE.id === rec.base ? BASE.byId.get(String(r.id)) : null;
+    const ok = r.a === r.k;
+    const head = `<span class="ic ${ok ? 'y' : 'n'}">${ok ? '✓' : '✗'}</span><span class="tx">${q ? esc(q.t) : 'Pytanie nr ' + esc(r.id)}<small>${i + 1}. ${partLabel(r.s)} · ${r.p} pkt${ok ? '' : ' · Twoja odp.: ' + esc(q ? ansLabel(q, r.a) : (r.a || '—'))}</small></span>`;
+    const det = q ? `<div class="det" data-q="${esc(q.id)}"><div class="rvmedia"></div>${ansButtons(q, { sel: r.a, reveal: true, disabled: true })}${explain(q, ok, r.a)}</div>` : `<div class="det mut small">To pytanie pochodzi z innej bazy (${esc(rec.baseName || rec.base)}). Przełącz bazę, żeby zobaczyć szczegóły.</div>`;
+    return `<details class="rv"><summary>${head}</summary>${det}</details>`;
+  }).join('');
+}
+function renderExamEnd(el) {
+  const r = X.result;
+  const good = r.items.filter((x) => x.a === x.k).length;
+  el.innerHTML = `<div class="ov-top"><button class="ibtn" data-a="s-close" aria-label="Zamknij">✕</button><div class="ttl">Wynik egzaminu<small>${fmtDate(r.ts)}</small></div><span style="width:40px"></span></div>
+  <div class="ov-body"><div><div class="res"><div class="sc">${r.score}<small> / ${r.max}</small></div><div class="verdict ${r.pass ? 'pass' : 'fail'}">${r.pass ? 'Wynik pozytywny' : 'Wynik negatywny'}</div><p class="mut small">Próg: ${r.need} pkt · poprawne odpowiedzi: ${good} z ${r.items.length} · czas: ${Math.floor(r.dur / 60)} min ${r.dur % 60} s</p></div>
+  <h3>Przegląd odpowiedzi</h3><div>${reviewList(r)}</div></div></div>
+  <div class="ov-foot"><div><button class="btn" data-a="s-close">Zamknij</button><button class="btn pri" data-a="exam-again">Nowy egzamin</button></div></div>`;
+}
+function openReview(i) {
+  const r = S.exams[i]; if (!r) return;
+  X = { mode: 'exam', phase: 'end', result: r, items: [], i: 0 };
+  openSess();
+}
+
+/* ---------- przepisy w nakładce (z sesji) ---------- */
+function openRuleOverlay(id) {
+  const ch = CH[id]; if (!ch) return;
+  const ov = $('#ruleov');
+  ov.innerHTML = `<div class="ov-top"><button class="ibtn" data-a="ruleov-close" aria-label="Zamknij">✕</button><div class="ttl">Przepisy</div><span style="width:40px"></span></div><div class="ov-body"><div>${ruleArticle(ch, true).replace(/<button class="btn pri block" data-a="learn-ch"[^>]*>.*?<\/button>/, '')}</div></div>`;
+  ov.hidden = false; ov.style.zIndex = 45;
+}
+
+/* ---------- import oficjalnej bazy (XLSX z gov.pl) ---------- */
+const LANG = /\b(eng|en|ang|angielski|de|niem|niemiecki|ua|ukr|ukrainski|ru)\b/;
+const normH = (s) => foldLow(s).replace(/[^a-z0-9]+/g, ' ').trim();
+function mapCols(header) {
+  const h = header.map(normH);
+  const first = (pred) => { for (let i = 0; i < h.length; i++) if (h[i] && pred(h[i])) return i; return null; };
+  const c = {};
+  c.id = first((x) => ['numer pytania', 'nr pytania', 'numer', 'id pytania'].includes(x) || x.startsWith('numer pytania'));
+  c.t = first((x) => x === 'pytanie'); if (c.t == null) c.t = first((x) => (x.startsWith('pytanie') || x.startsWith('tresc pytania')) && !LANG.test(x));
+  for (const L of 'abc') c[L] = first((x) => [`odpowiedz ${L}`, `odp ${L}`, `odpowiedz ${L} pl`].includes(x) || (new RegExp(`^odp\\w* ${L}\\b`).test(x) && !LANG.test(x)));
+  c.k = first((x) => x.startsWith('poprawna'));
+  c.m = first((x) => ['media', 'multimedia', 'plik', 'nazwa pliku'].includes(x) || x.startsWith('media'));
+  c.s = first((x) => x.includes('zakres'));
+  c.p = first((x) => x.includes('punkt') || x === 'waga');
+  c.c = first((x) => x.includes('kategori'));
+  c.src = first((x) => x.includes('zrodlo'));
+  c.why = first((x) => x.includes('o co chcemy'));
+  c.safe = first((x) => x.includes('zwiazek'));
+  return c;
+}
+function parseRows(rows) {
+  let hi = -1;
+  for (let i = 0; i < Math.min(15, rows.length); i++) if ((rows[i] || []).some((x) => normH(x) === 'pytanie' || normH(x).startsWith('numer pytania'))) { hi = i; break; }
+  if (hi < 0) return null;
+  const col = mapCols(rows[hi]);
+  if (col.id == null || col.t == null || col.k == null) return null;
+  const cell = (row, i) => { if (i == null || i >= row.length) return ''; const v = row[i]; return v == null ? '' : String(v).trim(); };
+  const out = [], seen = new Set();
+  for (const row of rows.slice(hi + 1)) {
+    if (!row) continue;
+    const id = cell(row, col.id).replace(/\.0+$/, ''), t = cell(row, col.t);
+    if (!id || !t || seen.has(id)) continue;
+    seen.add(id);
+    const a = ['a', 'b', 'c'].map((L) => cell(row, col[L]));
+    let k = normH(cell(row, col.k)).toUpperCase(); k = { TAK: 'T', NIE: 'N' }[k] || k.slice(0, 1);
+    const z = normH(cell(row, col.s));
+    const s = z.startsWith('spec') ? 'S' : z.startsWith('podst') ? 'P' : (a.some(Boolean) ? 'S' : 'P');
+    if (s === 'S' && !'ABC'.includes(k || '?')) continue;
+    if (s === 'P' && !['T', 'N'].includes(k)) continue;
+    const q = { id, s, p: Math.max(1, Math.min(3, parseInt(cell(row, col.p), 10) || 1)), t, k };
+    if (s === 'S') q.a = a;
+    const m = cell(row, col.m); if (m && !['brak', 'none'].includes(normH(m))) q.m = m.replace(/\\/g, '/').split('/').pop();
+    const cats = cell(row, col.c).toUpperCase().split(/[\s,;/]+/).filter(Boolean); if (cats.length) q.c = cats;
+    for (const key of ['src', 'why', 'safe']) { const v = cell(row, col[key]); if (v) q[key] = v; }
+    out.push(q);
+  }
+  return out;
+}
+function loadScript(src) { return new Promise((res, rej) => { const s = document.createElement('script'); s.src = src; s.onload = res; s.onerror = () => rej(new Error('Nie udało się wczytać biblioteki arkuszy')); document.head.appendChild(s); }); }
+async function importBaseFile(file) {
+  const prog = $('#impProg'); const say = (t) => { if (prog) prog.textContent = t; };
+  try {
+    say('Wczytywanie pliku…');
+    let qs, wersja = file.name.replace(/\.[^.]+$/, '');
+    if (/\.json$/i.test(file.name)) {
+      const data = JSON.parse(await file.text());
+      qs = Array.isArray(data) ? data : data.q; if (data.meta && data.meta.wersja) wersja = data.meta.wersja;
+      if (!Array.isArray(qs) || !qs.length || !qs[0].t) throw new Error('To nie jest plik bazy pytań');
+    } else {
+      if (!window.XLSX) await loadScript('lib/xlsx.mini.min.js');
+      say('Odczyt arkusza…');
+      const wb = XLSX.read(new Uint8Array(await file.arrayBuffer()), { type: 'array' });
+      for (const name of wb.SheetNames) {
+        const rows = XLSX.utils.sheet_to_json(wb.Sheets[name], { header: 1, defval: '', raw: false });
+        const r = parseRows(rows); if (r && (!qs || r.length > qs.length)) qs = r;
+      }
+      if (!qs || !qs.length) throw new Error('Nie znaleziono pytań. Czy to plik bazy pytań z gov.pl?');
+    }
+    const meta = { nazwa: 'Oficjalna baza pytań (zaimportowana)', oficjalna: true, wersja, liczba: qs.length, data: Date.now() };
+    await DB.put('kv', 'import-q', qs); await DB.put('kv', 'import-meta', meta);
+    MAN.bazy = MAN.bazy.filter((b) => b.id !== 'import');
+    MAN.bazy.push({ id: 'import', import: true, nazwa: 'Oficjalna baza (zaimportowana)', oficjalna: true, wersja, liczba: qs.length });
+    await useBase('import');
+    const nP = qs.filter((q) => q.s === 'P').length;
+    toast(`Zaimportowano ${qs.length} pytań`);
+    render();
+    const p2 = $('#impProg'); if (p2) p2.textContent = `Zaimportowano ${qs.length} pytań (${nP} TAK/NIE, ${qs.length - nP} A/B/C). Baza jest aktywna.`;
+  } catch (e) { say('Błąd: ' + e.message); toast('Import nie powiódł się'); }
+}
+async function importMedia(files) {
+  const prog = $('#impProg'); const say = (t) => { if (prog) prog.textContent = t; };
+  const list = [...files].filter((f) => IMG_EXT.test(f.name) || VID_EXT.test(f.name) || /^(image|video)\//.test(f.type));
+  if (!list.length) { toast('Nie wybrano zdjęć ani filmów'); return; }
+  // Gdy w wyborze jest ten sam plik jako MP4 i WMV, zapisujemy tylko MP4 (Safari nie odtwarza WMV).
+  const mp4 = new Set(list.filter((f) => /\.mp4$/i.test(f.name)).map((f) => stemOf(f.name)));
+  const files2 = list.filter((f) => !(/\.wmv$/i.test(f.name) && mp4.has(stemOf(f.name))));
+  let done = 0, wmv = 0;
+  try {
+    for (let i = 0; i < files2.length; i += 25) {
+      const chunk = files2.slice(i, i + 25), entries = [];
+      for (const f of chunk) {
+        const key = stemOf(f.name);
+        const prev = MEDIA.has(key) ? await DB.get('media', key) : null;
+        if (prev && prev.n && /\.mp4$/i.test(prev.n) && /\.wmv$/i.test(f.name)) continue; // nie nadpisuj MP4 plikiem WMV
+        if (/\.wmv$/i.test(f.name)) wmv++;
+        entries.push([key, { n: f.name, t: f.type || (VID_EXT.test(f.name) ? 'video/mp4' : 'image/jpeg'), b: await f.arrayBuffer() }]);
+      }
+      await DB.putMany('media', entries);
+      for (const [k] of entries) { MEDIA.add(k); if (urlCache.has(k)) { URL.revokeObjectURL(urlCache.get(k).url); urlCache.delete(k); } }
+      done += entries.length; say(`Zapisywanie multimediów: ${Math.min(i + 25, files2.length)} / ${files2.length}`);
+    }
+    toast(`Zapisano ${done} ${plural(done, 'plik', 'pliki', 'plików')}`);
+    render();
+    const p2 = $('#impProg'); if (p2) p2.textContent = `Zapisano ${done} ${plural(done, 'plik', 'pliki', 'plików')} multimediów.${wmv ? ` Uwaga: ${wmv} w formacie WMV – Safari ich nie odtworzy, potrzebne są pliki MP4.` : ''}`;
+  } catch (e) { say('Błąd zapisu: ' + e.message + ' (możliwy brak miejsca w pamięci)'); }
+}
+
+/* ---------- kopia zapasowa ---------- */
+function exportBackup() {
+  const data = JSON.stringify({ app: 'prawko', v: 1, ts: Date.now(), state: S });
+  const blob = new Blob([data], { type: 'application/json' });
+  const a = document.createElement('a'); a.href = URL.createObjectURL(blob); a.download = `prawko-postep-${today()}.json`;
+  document.body.appendChild(a); a.click(); setTimeout(() => { URL.revokeObjectURL(a.href); a.remove(); }, 1000);
+}
+async function importBackup(file) {
+  try {
+    const d = JSON.parse(await file.text());
+    if (!d || d.app !== 'prawko' || !d.state) throw new Error('To nie jest kopia aplikacji Prawko');
+    if (!confirm('Zastąpić obecny postęp danymi z kopii?')) return;
+    S = normalize(d.state); save();
+    if (S.base && MAN.bazy.some((b) => b.id === S.base) && S.base !== BASE.id) await useBase(S.base);
+    toast('Wczytano kopię'); render();
+  } catch (e) { toast('Błąd: ' + e.message); }
+}
+
+/* ---------- zdarzenia ---------- */
+document.addEventListener('click', async (ev) => {
+  const t = ev.target.closest('[data-a],[data-tab]'); if (!t) return;
+  if (t.dataset.tab) { tab = t.dataset.tab; if (tab !== 'przepisy') ruleOpen = null; render(); scrollTo(0, 0); return; }
+  const a = t.dataset.a;
+  switch (a) {
+    case 'hide-install': S.hideInstall = true; save(); render(); break;
+    case 'go-more-base': tab = 'wiecej'; render(); setTimeout(() => { const s = $('#sec-base'); if (s) s.scrollIntoView({ block: 'start' }); }, 30); break;
+    case 'learn-continue': { const f = { part: 'all', ch: '', med: 'all' }; const list = filtered(f); const key = learnKey(f); startLearn(list, { start: Math.min(S.pos[key] || 0, Math.max(0, list.length - 1)), posKey: key, title: 'Nauka po kolei' }); break; }
+    case 'learn-quick': { const f = { part: 'all', ch: '', med: 'all' }; const m = t.dataset.m; startLearn(modeList(f, m), { title: { losowo: 'Losowe pytania', bledne: 'Do powtórki', ulubione: 'Ulubione' }[m] }); break; }
+    case 'lf': S.lf[t.dataset.k] = t.dataset.v; save(); render(); break;
+    case 'learn-go': {
+      const f = S.lf, list = modeList(f, f.mode), key = learnKey(f);
+      const titles = { kolejno: 'Nauka po kolei', losowo: 'Losowe pytania', nowe: 'Nowe pytania', bledne: 'Do powtórki', nieopanowane: 'Nieopanowane', ulubione: 'Ulubione' };
+      startLearn(list, f.mode === 'kolejno' ? { start: Math.min(S.pos[key] || 0, Math.max(0, list.length - 1)), posKey: key, title: titles.kolejno } : { title: titles[f.mode] });
+      break;
+    }
+    case 'learn-ch': { const id = t.dataset.id; startLearn(shuffle(pool().filter((q) => q.ch === id)), { title: CH[id] ? CH[id].title : 'Rozdział' }); break; }
+    case 'open-q': { const q = BASE.byId.get(t.dataset.id); if (q) startLearn([q], { title: 'Pytanie nr ' + q.id }); break; }
+    case 'exam-start': case 'exam-again': if (X) { stopTimer(); X = null; } startExam(); break;
+    case 'exam-review': openReview(+t.dataset.i); break;
+    case 'exams-clear': if (confirm('Usunąć historię egzaminów próbnych?')) { S.exams = []; save(); render(); } break;
+    case 'rule': ruleOpen = t.dataset.id; tab = 'przepisy'; render(); scrollTo(0, 0); break;
+    case 'rule-back': ruleOpen = null; render(); scrollTo(0, 0); break;
+    case 'rule-ov': openRuleOverlay(t.dataset.id); break;
+    case 'ruleov-close': $('#ruleov').hidden = true; $('#ruleov').innerHTML = ''; break;
+    case 'cat': S.cat = t.dataset.v; save(); render(); toast('Kategoria ' + S.cat); break;
+    case 'base': if (t.dataset.v !== BASE.id) { try { await useBase(t.dataset.v); toast('Aktywna baza: ' + baseName()); } catch (e) { toast(e.message); } render(); } break;
+    case 'imp-base': $('#fileBase').click(); break;
+    case 'imp-media': $('#fileMedia').click(); break;
+    case 'del-import':
+      if (confirm('Usunąć zaimportowaną bazę z telefonu? Postęp nauki zostanie zachowany.')) {
+        await DB.del('kv', 'import-q'); await DB.del('kv', 'import-meta');
+        MAN.bazy = MAN.bazy.filter((b) => b.id !== 'import');
+        if (BASE.id === 'import') await useBase(pickDefaultBase());
+        render();
+      }
+      break;
+    case 'del-media': if (confirm('Usunąć wszystkie zaimportowane zdjęcia i filmy?')) { await DB.clear('media'); MEDIA = new Set(); for (const v of urlCache.values()) URL.revokeObjectURL(v.url); urlCache.clear(); render(); } break;
+    case 'backup-export': exportBackup(); break;
+    case 'backup-import': $('#fileBackup').click(); break;
+    case 'reset': if (confirm('Wyzerować cały postęp nauki, ulubione i historię egzaminów?')) { const keep = { cat: S.cat, base: S.base, set: S.set, hideInstall: S.hideInstall }; S = normalize(keep); save(); render(); toast('Postęp wyzerowany'); } break;
+    // sesja
+    case 's-close': closeSess(); break;
+    case 'fav': { const q = curQ(); if (q) { toggleFav(q.id); t.classList.toggle('on', isFav(q.id)); t.textContent = isFav(q.id) ? '★' : '☆'; toast(isFav(q.id) ? 'Dodano do ulubionych' : 'Usunięto z ulubionych'); } break; }
+    case 'ans':
+      if (!X) break;
+      if (X.mode === 'learn') learnAnswer(t.dataset.v);
+      else if (X.phase === 'answer' || X.phase === 'media') { X.sel = t.dataset.v; $$('#sess .ans button').forEach((b) => b.classList.toggle('sel', b.dataset.v === X.sel)); }
+      break;
+    case 'next': learnNext(); break;
+    case 'skip': learnNext(); break;
+    case 'redo-wrong': { const ids = X.done.filter((d) => !d.ok).map((d) => d.id); const list = ids.map((id) => BASE.byId.get(String(id))).filter(Boolean); startLearn(list, { title: 'Powtórka błędów' }); break; }
+    case 'replay': { const v = $('#sess video'); if (v) { v.currentTime = 0; v.play().catch(() => {}); } break; }
+    case 'exam-startmedia': examStartMedia(); break;
+    case 'exam-next': examNext(); break;
+    case 'exam-quit': if (confirm('Przerwać egzamin? Wynik nie zostanie zapisany.')) closeSess(); break;
+  }
+});
+document.addEventListener('toggle', async (ev) => {
+  const d = ev.target; if (!(d instanceof HTMLDetailsElement) || !d.open) return;
+  const det = d.querySelector('.det[data-q]'); if (!det || det.dataset.done) return;
+  det.dataset.done = 1;
+  const q = BASE.byId.get(det.dataset.q); if (!q || !q.m) return;
+  const m = await mediaURL(q).catch(() => null); if (!m) return;
+  det.querySelector('.rvmedia').innerHTML = `<div class="media">${m.kind === 'vid' ? `<video src="${m.url}" playsinline muted controls preload="metadata"></video>` : `<img src="${m.url}" alt="">`}</div>`;
+}, true);
+document.addEventListener('change', (ev) => {
+  const t = ev.target;
+  if (t.matches('[data-a="set"]')) { S.set[t.dataset.k] = t.checked; save(); render(); }
+  else if (t.matches('[data-a="lf-ch"]')) { S.lf.ch = t.value; save(); render(); }
+  else if (t.id === 'fileBase' && t.files[0]) { importBaseFile(t.files[0]); t.value = ''; }
+  else if (t.id === 'fileMedia' && t.files.length) { importMedia(t.files); t.value = ''; }
+  else if (t.id === 'fileBackup' && t.files[0]) { importBackup(t.files[0]); t.value = ''; }
+});
+document.addEventListener('input', (ev) => {
+  const t = ev.target;
+  if (t.id === 'qsearch') { searchQ = t.value; $('#qres').innerHTML = searchResults(); }
+  else if (t.id === 'rsearch') { ruleQuery = t.value; $('#rres').innerHTML = rulesList(); }
+});
+document.addEventListener('keydown', (ev) => {
+  if (!X || $('#sess').hidden || ev.target.matches('input,textarea,select')) return;
+  const k = ev.key.toLowerCase();
+  const q = curQ();
+  if (q && X.phase !== 'end') {
+    const map = q.s === 'P' ? { t: 'T', n: 'N', 1: 'T', 2: 'N' } : { a: 'A', b: 'B', c: 'C', 1: 'A', 2: 'B', 3: 'C' };
+    if (map[k]) { const b = $(`#sess .ans button[data-v="${map[k]}"]`); if (b && !b.disabled) b.click(); return; }
+  }
+  if (k === 'enter' || k === 'arrowright') { const b = $('#sess .ov-foot .btn.pri'); if (b) b.click(); }
+  else if (k === 'escape') { const b = $('#sess [data-a="s-close"],#sess [data-a="exam-quit"]'); if (b) b.click(); }
+});
+addEventListener('scroll', () => $('#hdr').classList.toggle('scrolled', scrollY > 4), { passive: true });
+
+/* ---------- start ---------- */
+(async function init() {
+  load(); render();
+  await loadManifest();
+  try { await useBase(pickDefaultBase()); }
+  catch (e) { try { await useBase('wlasne'); } catch (e2) { $('#view').innerHTML = '<div class="empty">Nie udało się wczytać bazy pytań. Sprawdź połączenie i odśwież stronę.</div>'; return; } }
+  render();
+})();
+if ('serviceWorker' in navigator && location.protocol !== 'file:') addEventListener('load', () => { navigator.serviceWorker.register('./sw.js').catch(() => {}); });
+</script>
+</body>
+</html>

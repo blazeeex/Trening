@@ -27,8 +27,9 @@ self.addEventListener('fetch', (e) => {
   if (req.method !== 'GET') return;
   const url = new URL(req.url);
   if (url.origin !== self.location.origin) return;
-  // Dziennik zadań (podfolder /dziennik/) ma własny service worker — nie mieszamy jego plików z Treningiem.
+  // Dziennik zadań (/dziennik/) i Prawko (/prawko/) mają własne service workery — nie mieszamy ich plików z Treningiem.
   if (url.pathname.startsWith(new URL('./dziennik/', self.location).pathname)) return;
+  if (url.pathname.startsWith(new URL('./prawko/', self.location).pathname)) return;
 
   // Strona główna: najpierw sieć (żeby szybko łapać nowe wersje), przy słabym zasięgu kopia z telefonu.
   if (req.mode === 'navigate') {
